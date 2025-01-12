@@ -32,13 +32,22 @@ module.exports = {
 				.setTitle(`Perfil de ${character.name}`)
 				.setDescription(character.description)
 				.addFields(
-					{ name: "Class", value: "A", inline: true },
-					{ name: "Level", value: "677", inline: true },
+					{ name: "🔹 Class", value: "A", inline: true },
+					{ name: "🔸 Level", value: "677", inline: true },
+					{ name: "🔸 Level", value: "677", inline: true },
+					{ name: "🔸 Level", value: "677", inline: true },
+					{ name: "\u200B", value: "\u200B", inline: true }, // Empty field for spacing
 					/* { name: "Class", value: character.class, inline: true },
 					{ name: "Level", value: character.level.toString(), inline: true }, */
-					{ name: "\u200B", value: "\u200B", inline: true }, // Empty field for spacing
 					/* { name: "Health", value: `${character.health}/100`, inline: true },
 					{ name: "Mana", value: `${character.mana}/50`, inline: true }, */
+
+					{
+						name: "🏆 Achievements",
+						value:
+							"• Defeated the Dragon\n• Saved the Kingdom\n• Found the Lost Artifact",
+						inline: false,
+					},
 				)
 				.setImage("https://via.placeholder.com/400x200");
 
