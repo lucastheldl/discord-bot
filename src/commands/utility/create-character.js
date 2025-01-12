@@ -27,6 +27,11 @@ module.exports = {
 				name: characterName,
 				description: characterDescription,
 				username: interaction.user.username,
+				max_health: 100,
+				max_energy: 100,
+				current_health: 100,
+				current_energy: 100,
+				class: "B",
 			});
 
 			return interaction.reply(`Character ${character.name} created.`);
@@ -35,7 +40,7 @@ module.exports = {
 				return interaction.reply("Character already exists");
 			}
 			throw new Error(error);
-			return interaction.reply("Something went wrong with creating character");
+			//return interaction.reply("Something went wrong with creating character");
 		}
 	},
 };

@@ -4,9 +4,8 @@ const { Vehicle } = require("../models/vehicle");
 module.exports = {
 	name: Events.ClientReady,
 	once: true,
-	execute(client) {
-		Character.sync();
-		Vehicle.sync();
+	async execute(client) {
+		await Promise.all([Character.sync(), Vehicle.sync()]);
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},
 };

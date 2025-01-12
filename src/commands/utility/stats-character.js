@@ -32,16 +32,19 @@ module.exports = {
 				.setTitle(`Perfil de ${character.name}`)
 				.setDescription(character.description)
 				.addFields(
-					{ name: "🔹 Class", value: "A", inline: true },
+					{ name: "🔹 Class", value: character.class, inline: true },
 					{ name: "🔸 Level", value: "677", inline: true },
-					{ name: "🔸 Level", value: "677", inline: true },
-					{ name: "🔸 Level", value: "677", inline: true },
+					{
+						name: "❤ Vida",
+						value: `${character.current_health}/${character.max_health}`,
+						inline: true,
+					},
+					{
+						name: "✨ Energia",
+						value: `${character.current_energy}/${character.max_energy}`,
+						inline: true,
+					},
 					{ name: "\u200B", value: "\u200B", inline: true }, // Empty field for spacing
-					/* { name: "Class", value: character.class, inline: true },
-					{ name: "Level", value: character.level.toString(), inline: true }, */
-					/* { name: "Health", value: `${character.health}/100`, inline: true },
-					{ name: "Mana", value: `${character.mana}/50`, inline: true }, */
-
 					{
 						name: "🏆 Achievements",
 						value:

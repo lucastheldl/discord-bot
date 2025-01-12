@@ -1,7 +1,7 @@
 const { sequelize } = require("../db-connection");
 const Sequelize = require("sequelize");
 
-const Character = sequelize.define("character", {
+const Character = sequelize.define("characters", {
 	name: {
 		type: Sequelize.STRING,
 		unique: true,
@@ -16,7 +16,7 @@ const Character = sequelize.define("character", {
 	vehicleId: {
 		type: Sequelize.INTEGER,
 		references: {
-			model: "vehicle",
+			model: "vehicles",
 			key: "id",
 		},
 		allowNull: true,

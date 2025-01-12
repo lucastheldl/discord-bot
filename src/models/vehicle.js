@@ -2,7 +2,7 @@ const { sequelize } = require("../db-connection");
 const Sequelize = require("sequelize");
 const { Character } = require("./character");
 
-const Vehicle = sequelize.define("vehicle", {
+const Vehicle = sequelize.define("vehicles", {
 	id: {
 		type: Sequelize.INTEGER,
 		autoIncrement: true,
