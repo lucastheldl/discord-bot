@@ -2,6 +2,11 @@ const { sequelize } = require("../db-connection");
 const Sequelize = require("sequelize");
 
 const Character = sequelize.define("characters", {
+	id: {
+		type: Sequelize.INTEGER,
+		autoIncrement: true,
+		primaryKey: true,
+	},
 	name: {
 		type: Sequelize.STRING,
 		unique: true,

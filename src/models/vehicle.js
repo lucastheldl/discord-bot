@@ -1,6 +1,5 @@
 const { sequelize } = require("../db-connection");
 const Sequelize = require("sequelize");
-const { Character } = require("./character");
 
 const Vehicle = sequelize.define("vehicles", {
 	id: {
@@ -14,8 +13,5 @@ const Vehicle = sequelize.define("vehicles", {
 	damage: Sequelize.INTEGER,
 	class: Sequelize.ENUM("C", "B", "A", "SUPER", "MEGA", "OMEGA"),
 });
-
-Character.belongsTo(Vehicle, { foreignKey: "vehicleId" });
-Vehicle.hasOne(Character, { foreignKey: "vehicleId" });
 
 module.exports = { Vehicle };
