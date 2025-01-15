@@ -6,25 +6,23 @@ const { EmbedBuilder } = require("discord.js");
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("stats")
-		.setDescription("Edit a character")
-		.addStringOption((option) =>
+		.setDescription("Editar um personagem"),
+	/* .addStringOption((option) =>
 			option
 				.setName("name")
 				.setDescription("Nome do personagem")
 				.setRequired(true),
-		),
+		), */
 	async execute(interaction) {
-		const characterName = interaction.options.getString("name");
+		const username = interaction.user.username;
 
 		try {
 			const character = await Character.findOne({
-				where: { name: characterName },
+				where: { username: username },
 			});
 
 			if (!character) {
-				return interaction.reply(
-					`Este personagem não existe ${characterName}.`,
-				);
+				return interaction.reply("Este personagem não existe.");
 			}
 
 			const statsEmbed = new EmbedBuilder()
