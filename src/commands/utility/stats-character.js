@@ -32,19 +32,18 @@ module.exports = {
 				.setTitle(`Perfil de ${character.name}`)
 				.setDescription(character.description)
 				.addFields(
-					{ name: "🔹 Class", value: character.class, inline: true },
-					{ name: "🔸 Level", value: "677", inline: true },
+					{ name: "🔹 Classe", value: character.class, inline: false },
 					{
 						name: "❤ Vida",
 						value: `${character.current_health}/${character.max_health}`,
-						inline: true,
+						inline: false,
 					},
 					{
 						name: "✨ Energia",
 						value: `${character.current_energy}/${character.max_energy}`,
-						inline: true,
+						inline: false,
 					},
-					{ name: "\u200B", value: "\u200B", inline: true }, // Empty field for spacing
+					{ name: "\u200B", value: "\u200B", inline: false }, // Empty field for spacing
 					{
 						name: "🏆 Achievements",
 						value:
@@ -52,7 +51,7 @@ module.exports = {
 						inline: false,
 					},
 				)
-				.setImage("https://via.placeholder.com/400x200");
+				.setThumbnail("https://i.imgur.com/AfFp7pu.png");
 
 			return await interaction.reply({ embeds: [statsEmbed] });
 		} catch (error) {

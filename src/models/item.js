@@ -15,3 +15,15 @@ const Item = sequelize.define("items", {
 });
 
 module.exports = { Item };
+
+//logica pra criar item e adicionar ao personagem o metodo addItem é automatico
+/* const item = await Item.create({
+	name: "Sword",
+	type: "weapon",
+	damage: 10,
+	class: "B"
+});
+
+await character.addItem(item, { 
+	through: { quantity: 1, equipped: true }
+}); */

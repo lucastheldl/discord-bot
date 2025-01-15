@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { Character } = require("../../models/character");
+const { Character, Item } = require("../../models");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -32,6 +32,16 @@ module.exports = {
 				current_health: 100,
 				current_energy: 100,
 				class: "B",
+			});
+			const item = await Item.create({
+				name: "Sword",
+				type: "weapon",
+				damage: 10,
+				class: "B",
+			});
+
+			await character.addItem(item, {
+				through: { quantity: 1, equipped: false },
 			});
 
 			return interaction.reply(`Character ${character.name} created.`);
