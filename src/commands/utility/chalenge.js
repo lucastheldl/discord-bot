@@ -20,6 +20,7 @@ module.exports = {
 		),
 	async execute(interaction) {
 		const username = interaction.user.username;
+		const enemyUserName = interaction.options.getString("name");
 
 		try {
 			const character = await Character.findOne({
@@ -32,6 +33,19 @@ module.exports = {
 					//incluir poderes tbm
 				], */
 			});
+			const enemyCharacter = await Character.findOne({
+				where: { username: enemyUserName },
+				/* include: [
+					{
+						model: Item,
+						through: { attributes: ["quantity", "equipped"] },
+					},
+					//incluir poderes tbm
+				], */
+			});
+			//todo:Check if they are in the same place to fight otherwise return
+
+			//todo:pegar poderes do personagem
 			const powers = [
 				{ name: "fire ball", id: 1, accuracy: 2, damage: 100 },
 				{ name: "water attack", id: 2, accuracy: 2, damage: 100 },
@@ -68,15 +82,60 @@ module.exports = {
 				)
 				.setThumbnail("https://i.imgur.com/m8pGaD3.jpeg");
 
-			return await interaction.reply({
+			await interaction.reply({
 				embeds: [battleEmbed],
 				components: rows,
+			});
+
+			// Create a button collector
+			const collector = interaction.channel.createMessageComponentCollector({
+				time: 30000, // Button expires after 30 seconds
+			});
+
+			collector.on("collect", async (buttonInteraction) => {
+				if (!buttonInteraction.customId.startsWith("power_")) return;
+
+				const powerId = buttonInteraction.customId.split("_")[1];
+				const power = powers.find((p) => p.id === Number.parseInt(powerId));
+
+				if (!power) return;
+
+				// Calculate hit or miss based on power accuracy
+				const hit = Math.random() * 100 <= power.accuracy;
+
+				const resultEmbed = new EmbedBuilder()
+					.setColor(hit ? 0x00ff00 : 0xff0000)
+					.setTitle(`${character.name} used ${power.name}!`)
+					.setDescription(
+						hit
+							? `✨ The attack hit! Dealing ${power.damage} damage!`
+							: "❌ The attack missed!",
+					);
+
+				await buttonInteraction.reply({
+					embeds: [resultEmbed],
+				});
+			});
+
+			// Disable all buttons when collector expires
+			collector.on("end", () => {
+				// biome-ignore lint/complexity/noForEach: <explanation>
+				rows.forEach((row) => {
+					// biome-ignore lint/complexity/noForEach: <explanation>
+					row.components.forEach((button) => button.setDisabled(true));
+				});
+
+				interaction
+					.editReply({
+						components: rows,
+					})
+					.catch(console.error);
 			});
 		} catch (error) {
 			console.error("Chalenge command error:", error);
 			return interaction.reply("Ocorreu um erro ao desafiar personagem.");
 			/* return interaction.reply(
-            "Something went wrong with getting character inventory",
+            "Something went wrong with chalenging a character",
         ); */
 		}
 	},
