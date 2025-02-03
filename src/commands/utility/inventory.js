@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { Character, Item } = require("../../models");
+const { Character, Item, User } = require("../../models");
 const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
@@ -8,11 +8,23 @@ module.exports = {
 		.setName("invent")
 		.setDescription("Mostra o inventario do personagem"),
 	async execute(interaction) {
-		const username = interaction.user.username;
+		const userId = interaction.user.id;
 
 		try {
+			//gets user selected character
+			const user = await User.findByPk(userId, {
+				include: ["currentCharacter"],
+			});
+			if (!user) {
+				return interaction.reply("Você não possui personagens");
+			}
+			//check if theres a character
+			if (!user.currentCharacter) {
+				return interaction.reply("Você não possui um personagem selecionado.");
+			}
+
 			const character = await Character.findOne({
-				where: { username: username },
+				where: { id: user.currentCharacter.id },
 				include: [
 					{
 						model: Item,

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { Character } = require("../../models/character");
+const { Character, User } = require("../../models");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -22,14 +22,35 @@ module.exports = {
 		const characterName = interaction.options.getString("name");
 		const characterDescription = interaction.options.getString("description");
 
+		const userId = interaction.user.id;
+
 		try {
+			//gets by user
+			const user = await User.findByPk(userId, {
+				include: ["currentCharacter"],
+			});
+			if (!user) {
+				return interaction.reply("Você não possui personagens");
+			}
+			if (!user.currentCharacter) {
+				return interaction.reply("Você não possui um personagem selecionado");
+			}
+
+			// Updates character
+			//TODO: description reseting if not provided during edit
 			const affectedRows = await Character.update(
+				{ name: characterName },
 				{ description: characterDescription },
-				{ where: { name: characterName } },
+				{
+					where: {
+						id: user.currentCharacterId,
+						userId: userId,
+					},
+				},
 			);
 
 			if (affectedRows > 0) {
-				return interaction.reply(`Personagem ${tagName} foi editado`);
+				return interaction.reply(`Personagem ${characterName} foi editado`);
 			}
 
 			return interaction.reply(`Este personagem não existe ${characterName}.`);

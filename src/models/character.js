@@ -26,6 +26,13 @@ const Character = sequelize.define("characters", {
 		},
 		allowNull: true,
 	},
+	userId: {
+		type: Sequelize.INTEGER,
+		references: {
+			model: "users",
+			key: "id",
+		},
+	},
 });
 
 module.exports = { Character };

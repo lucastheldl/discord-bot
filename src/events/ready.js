@@ -1,5 +1,5 @@
 const { Events } = require("discord.js");
-const { Character, CharacterItem, Vehicle, Item } = require("../models");
+const { Character, CharacterItem, Vehicle, Item, User } = require("../models");
 
 module.exports = {
 	name: Events.ClientReady,
@@ -10,6 +10,7 @@ module.exports = {
 			Vehicle.sync(),
 			Item.sync(),
 			CharacterItem.sync(),
+			User.sync(),
 		]);
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},

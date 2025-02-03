@@ -1,44 +1,46 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { Character } = require("../../models/character");
+const { User } = require("../../models");
 const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("stats")
 		.setDescription("Editar um personagem"),
-	/* .addStringOption((option) =>
-			option
-				.setName("name")
-				.setDescription("Nome do personagem")
-				.setRequired(true),
-		), */
 	async execute(interaction) {
-		const username = interaction.user.username;
+		const userId = interaction.user.id;
 
 		try {
-			const character = await Character.findOne({
-				where: { username: username },
+			//gets by user
+			const user = await User.findByPk(userId, {
+				include: ["currentCharacter"],
 			});
-
-			if (!character) {
-				return interaction.reply("Este personagem não existe.");
+			if (!user) {
+				return interaction.reply("Você não possui personagens");
+			}
+			//check if theres a character
+			if (!user.currentCharacter) {
+				return interaction.reply("Você não possui um personagem selecionado.");
 			}
 
 			const statsEmbed = new EmbedBuilder()
 				.setColor(0x0099ff)
-				.setTitle(`Perfil de ${character.name}`)
-				.setDescription(character.description)
+				.setTitle(`Perfil de ${user.currentCharacter.name}`)
+				.setDescription(user.currentCharacter.description)
 				.addFields(
-					{ name: "🔹 Classe", value: character.class, inline: false },
+					{
+						name: "🔹 Classe",
+						value: user.currentCharacter.class,
+						inline: false,
+					},
 					{
 						name: "❤ Vida",
-						value: `${character.current_health}/${character.max_health}`,
+						value: `${user.currentCharacter.current_health}/${user.currentCharacter.max_health}`,
 						inline: false,
 					},
 					{
 						name: "✨ Energia",
-						value: `${character.current_energy}/${character.max_energy}`,
+						value: `${user.currentCharacter.current_energy}/${user.currentCharacter.max_energy}`,
 						inline: false,
 					},
 					{ name: "\u200B", value: "\u200B", inline: false }, // Empty field for spacing
@@ -53,7 +55,8 @@ module.exports = {
 
 			return await interaction.reply({ embeds: [statsEmbed] });
 		} catch (error) {
-			return interaction.reply("Something went wrong with edit character");
+			throw new Error(error);
+			//return interaction.reply("Something went wrong with edit character");
 		}
 	},
 };

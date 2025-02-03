@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { Character, Item } = require("../../models");
+const { Character, Item, User } = require("../../models");
 const {
 	EmbedBuilder,
 	ActionRowBuilder,
@@ -19,20 +19,23 @@ module.exports = {
 				.setRequired(true),
 		),
 	async execute(interaction) {
-		const username = interaction.user.username;
+		const userId = interaction.user.id;
 		const enemyUserName = interaction.options.getString("name");
 
 		try {
-			const character = await Character.findOne({
-				where: { username: username },
-				/* include: [
-					{
-						model: Item,
-						through: { attributes: ["quantity", "equipped"] },
-					},
-					//incluir poderes tbm
-				], */
+			//gets user selected character
+			const user = await User.findByPk(userId, {
+				include: ["currentCharacter"],
 			});
+			if (!user) {
+				return interaction.reply("Você não possui personagens");
+			}
+			//check if theres a character
+			if (!user.currentCharacter) {
+				return interaction.reply("Você não possui um personagem selecionado.");
+			}
+			const character = user.currentCharacter;
+			//gets enemy character
 			const enemyCharacter = await Character.findOne({
 				where: { username: enemyUserName },
 				/* include: [
@@ -43,9 +46,9 @@ module.exports = {
 					//incluir poderes tbm
 				], */
 			});
-			//todo:Check if they are in the same place to fight otherwise return
+			//TODO:Check if they are in the same place to fight otherwise return
 
-			//todo:pegar poderes do personagem
+			//TODO:pegar poderes do personagem
 			const powers = [
 				{ name: "fire ball", id: 1, accuracy: 2, damage: 100 },
 				{ name: "water attack", id: 2, accuracy: 2, damage: 100 },
