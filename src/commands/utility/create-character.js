@@ -81,7 +81,8 @@ module.exports = {
 					{
 						currentCharacterId: character.id,
 					},
-					{ transaction: t },
+
+					{ where: { id: userId }, transaction: t },
 				);
 
 				return { user, character };

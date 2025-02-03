@@ -27,7 +27,7 @@ const Character = sequelize.define("characters", {
 		allowNull: true,
 	},
 	userId: {
-		type: Sequelize.INTEGER,
+		type: Sequelize.STRING,
 		references: {
 			model: "users",
 			key: "id",
