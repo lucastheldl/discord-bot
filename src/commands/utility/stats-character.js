@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
-const { User } = require("../../models");
+const { User, Planet, Character, Location } = require("../../models");
 const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
@@ -13,7 +13,16 @@ module.exports = {
 		try {
 			//gets by user
 			const user = await User.findByPk(userId, {
-				include: ["currentCharacter"],
+				include: [
+					{
+						model: Character,
+						as: "currentCharacter",
+						include: [
+							{ model: Planet, as: "currentPlanet" },
+							{ model: Location, as: "currentLocation" },
+						],
+					},
+				],
 			});
 			if (!user) {
 				return interaction.reply("Você não possui personagens");
@@ -48,6 +57,11 @@ module.exports = {
 						name: "🏆 Achievements",
 						value:
 							"• Defeated the Dragon\n• Saved the Kingdom\n• Found the Lost Artifact",
+						inline: false,
+					},
+					{
+						name: "🪐 Local",
+						value: `• Planeta ${user.currentCharacter.currentPlanet.name}\n• ${user.currentCharacter.currentLocation.name}\n`,
 						inline: false,
 					},
 				)

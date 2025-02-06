@@ -26,6 +26,22 @@ const Character = sequelize.define("characters", {
 		},
 		allowNull: true,
 	},
+	currentPlanetId: {
+		type: Sequelize.INTEGER,
+		references: {
+			model: "planets",
+			key: "id",
+		},
+		allowNull: true,
+	},
+	currentLocationId: {
+		type: Sequelize.INTEGER,
+		references: {
+			model: "locations",
+			key: "id",
+		},
+		allowNull: true,
+	},
 	userId: {
 		type: Sequelize.STRING,
 		references: {

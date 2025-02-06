@@ -25,8 +25,28 @@ User.belongsTo(Character, {
 	as: "currentCharacter",
 	foreignKey: "currentCharacterId",
 });
+//planets,locations - character
+Planet.hasMany(Character);
+Character.belongsTo(Planet, {
+	foreignKey: "currentPlanetId",
+	as: "currentPlanet",
+});
+Location.hasMany(Character);
+Character.belongsTo(Location, {
+	foreignKey: "currentLocationId",
+	as: "currentLocation",
+});
+
 //location-planet
 Planet.hasMany(Location);
 Location.belongsTo(Planet);
 
-module.exports = { Item, Character, CharacterItem, Vehicle, User };
+module.exports = {
+	Item,
+	Character,
+	CharacterItem,
+	Vehicle,
+	User,
+	Location,
+	Planet,
+};

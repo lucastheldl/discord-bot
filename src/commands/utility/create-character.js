@@ -55,6 +55,8 @@ module.exports = {
 						current_energy: 100,
 						class: "B",
 						userId: user.id,
+						currentPlanetId: 1,
+						currentLocationId: 1,
 					},
 					{ transaction: t },
 				);

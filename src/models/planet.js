@@ -8,6 +8,7 @@ const Planet = sequelize.define("planets", {
 		primaryKey: true,
 	},
 	name: Sequelize.STRING,
+	description: Sequelize.STRING,
 	type: Sequelize.STRING, // Example: rock, gas, mecha
 });
 

@@ -8,6 +8,7 @@ const Location = sequelize.define("locations", {
 		primaryKey: true,
 	},
 	name: Sequelize.STRING,
+	description: Sequelize.STRING,
 	type: Sequelize.STRING, // Example: city, natural,
 	population: Sequelize.INTEGER, // 0 - no one, 10 - metropole
 	capital: Sequelize.INTEGER, // 0 - natual, 10 - extremely rich
