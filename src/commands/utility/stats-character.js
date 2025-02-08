@@ -60,7 +60,7 @@ module.exports = {
 						inline: false,
 					},
 					{
-						name: "🪐 Local",
+						name: "🗺 Local",
 						value: `• Planeta ${user.currentCharacter.currentPlanet.name}\n• ${user.currentCharacter.currentLocation.name}\n`,
 						inline: false,
 					},

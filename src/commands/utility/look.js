@@ -1,5 +1,7 @@
 const wait = require("node:timers/promises").setTimeout;
-const { Character, Item, User } = require("../../models");
+const { where } = require("sequelize");
+const { Character, Item, User, Vehicle } = require("../../models");
+const { interactWithFoundVehicle } = require("../../handlers/vehicle-handler");
 const {
 	EmbedBuilder,
 	ActionRowBuilder,
@@ -17,7 +19,7 @@ module.exports = {
 		const userId = interaction.user.id;
 		try {
 			//TODO:cheks if theres a selected character
-			const veicles = [
+			/* const veicles = [
 				{
 					name: "Xll-40",
 					id: 1,
@@ -34,7 +36,22 @@ module.exports = {
 					damage: 40,
 					class: "C",
 				},
-			];
+			]; */
+
+			const user = await User.findByPk(userId, {
+				include: ["currentCharacter"],
+			});
+			if (!user) {
+				return interaction.reply("Você não possui personagens");
+			}
+			//check if theres a character
+			if (!user.currentCharacter) {
+				return interaction.reply("Você não possui um personagem selecionado.");
+			}
+
+			const veicles = await Vehicle.findAll({
+				where: { currentLocationId: user.currentCharacter.currentLocationId },
+			});
 
 			const rows = [];
 			let currentRow = new ActionRowBuilder();
@@ -79,15 +96,7 @@ module.exports = {
 			collector.on("collect", async (buttonInteraction) => {
 				if (!buttonInteraction.customId.startsWith("veicle_")) return;
 
-				const veiclesId = buttonInteraction.customId.split("_")[1];
-				const veicle = veicles.find((p) => p.id === Number.parseInt(veiclesId));
-
-				if (!veicle) return;
-
-				await buttonInteraction.reply({
-					content: `show`,
-					flags: MessageFlags.Ephemeral,
-				});
+				await interactWithFoundVehicle(buttonInteraction, veicles);
 			});
 
 			// Disable all buttons when collector expires
