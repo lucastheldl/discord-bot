@@ -13,7 +13,7 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
-		await Promise.all([
+		/* 	await Promise.all([
 			Character.sync(),
 			Vehicle.sync(),
 			Item.sync(),
@@ -21,7 +21,7 @@ module.exports = {
 			User.sync(),
 			Planet.sync(),
 			Location.sync(),
-		]);
+		]); */
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},
 };

@@ -19,27 +19,15 @@ module.exports = {
 		const userId = interaction.user.id;
 		try {
 			//TODO:cheks if theres a selected character
-			/* const veicles = [
-				{
-					name: "Xll-40",
-					id: 1,
-					type: "Spaceship",
-					armor: 100,
-					damage: 70,
-					class: "B",
-				},
-				{
-					name: "Zex-pro",
-					id: 2,
-					type: "Spaceship",
-					armor: 80,
-					damage: 40,
-					class: "C",
-				},
-			]; */
 
 			const user = await User.findByPk(userId, {
-				include: ["currentCharacter"],
+				include: [
+					{
+						model: Character,
+						as: "currentCharacter",
+						attributes: ["id", "name", "currentLocationId", "currentPlanetId"],
+					},
+				],
 			});
 			if (!user) {
 				return interaction.reply("Você não possui personagens");
