@@ -24,6 +24,8 @@ module.exports = {
 					key: "id",
 				},
 				allowNull: true,
+				onUpdate: "CASCADE",
+				onDelete: "SET NULL",
 			},
 			currentLocationId: {
 				type: Sequelize.INTEGER,
@@ -32,6 +34,8 @@ module.exports = {
 					key: "id",
 				},
 				allowNull: true,
+				onUpdate: "CASCADE",
+				onDelete: "SET NULL",
 			},
 			createdAt: {
 				allowNull: false,

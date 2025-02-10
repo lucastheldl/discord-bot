@@ -17,7 +17,7 @@ Item.belongsToMany(Character, {
 
 //character-veicle
 Character.belongsTo(Vehicle, { foreignKey: "vehicleId" });
-Vehicle.hasOne(Character, { foreignKey: "vehicleId" });
+Vehicle.hasMany(Character, { foreignKey: "vehicleId" });
 //planets,locations - character
 Planet.hasMany(Vehicle, {
 	foreignKey: "currentPlanetId",
