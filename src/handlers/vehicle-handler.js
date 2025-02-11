@@ -12,7 +12,7 @@ const options = [
 	{ id: "2", name: "Atacar" },
 ];
 
-async function interactWithFoundVehicle(buttonInteraction, veicles) {
+async function interactWithFoundVehicle(buttonInteraction, veicles, character) {
 	const veiclesId = buttonInteraction.customId.split("_")[1];
 	const veicle = veicles.find((p) => p.id === Number.parseInt(veiclesId));
 
@@ -58,6 +58,9 @@ async function interactWithFoundVehicle(buttonInteraction, veicles) {
 	collector.on("collect", async (interaction) => {
 		if (interaction.customId === "1") {
 			//set vehicle as player current vehicle
+			await character.update({
+				vehicleId: veicle.id,
+			});
 			await interaction.reply("Você rouba o veículo com sucesso!");
 
 			collector.stop();

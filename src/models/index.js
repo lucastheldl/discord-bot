@@ -16,7 +16,7 @@ Item.belongsToMany(Character, {
 });
 
 //character-veicle
-Character.belongsTo(Vehicle, { foreignKey: "vehicleId" });
+Character.belongsTo(Vehicle, { foreignKey: "vehicleId", as: "currentVehicle" });
 Vehicle.hasMany(Character, { foreignKey: "vehicleId", as: "characters" });
 
 //planets,locations - character
@@ -44,6 +44,7 @@ User.hasMany(Character, {
 });
 Character.belongsTo(User, {
 	foreignKey: "userId",
+	as: "User",
 });
 User.belongsTo(Character, {
 	as: "currentCharacter",
@@ -69,8 +70,14 @@ Character.belongsTo(Location, {
 });
 
 //location-planet
-Planet.hasMany(Location);
-Location.belongsTo(Planet);
+Planet.hasMany(Location, {
+	foreignKey: "currentPlanetId",
+	as: "locations",
+});
+Location.belongsTo(Planet, {
+	foreignKey: "currentPlanetId",
+	as: "Planet",
+});
 
 module.exports = {
 	Item,

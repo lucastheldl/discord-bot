@@ -13,8 +13,8 @@ const {
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName("buscar")
-		.setDescription("Anda pelos arredores"),
+		.setName("veiculo")
+		.setDescription("Entra ou sai de seu veículo selecionado"),
 	async execute(interaction) {
 		const userId = interaction.user.id;
 		try {
@@ -23,7 +23,13 @@ module.exports = {
 					{
 						model: Character,
 						as: "currentCharacter",
-						attributes: ["id", "name", "currentLocationId", "currentPlanetId"],
+						attributes: [
+							"id",
+							"name",
+							"currentLocationId",
+							"currentPlanetId",
+							"vehicleId",
+						],
 					},
 				],
 			});
@@ -35,11 +41,31 @@ module.exports = {
 				return interaction.reply("Você não possui um personagem selecionado.");
 			}
 
-			const veicles = await Vehicle.findAll({
-				where: { currentLocationId: user.currentCharacter.currentLocationId },
+			if (!user.currentCharacter.vehicleId) {
+				return interaction.reply(
+					"Seu personagem não possui um veículo selecionado.",
+				);
+			}
+			const veicle = await Vehicle.findOne({
+				where: { id: user.currentCharacter.vehicleId },
+			});
+			//toggle if char is or not inside vehicle
+			await interaction.reply("Entrando no veículo");
+			await wait(1000);
+			const findingsEmbed = new EmbedBuilder()
+				.setColor(0x0099ff)
+				.setTitle(`${veicle.type} ${veicle.name}`)
+				.setDescription(
+					`Você entra na sua ${veicle.type} pronto para pilotar...`,
+				)
+				.setThumbnail(veicle.img);
+
+			const followUpMessage = await interaction.followUp({
+				embeds: [findingsEmbed],
+				//components: rows,
 			});
 
-			const rows = [];
+			/* const rows = [];
 			let currentRow = new ActionRowBuilder();
 
 			veicles.forEach((veicle, index) => {
@@ -103,7 +129,7 @@ module.exports = {
 						embeds: [findingsEmbed],
 					})
 					.catch(console.error);
-			});
+			}); */
 		} catch (error) {
 			console.error("Look command error:", error);
 			return interaction.reply("Ocorreu um erro ao buscar.");
