@@ -105,9 +105,6 @@ module.exports = {
 		} catch (error) {
 			console.error("Look command error:", error);
 			return interaction.reply("Ocorreu um erro ao buscar.");
-			/* return interaction.reply(
-            "Something went wrong with chalenging a character",
-        ); */
 		}
 	},
 };
