@@ -11,6 +11,13 @@ const {
 	SlashCommandBuilder,
 } = require("discord.js");
 
+const options = [
+	{ id: "1", name: "Sair" },
+	{ id: "2", name: "Pilotar" },
+	{ id: "3", name: "Inventário" },
+	{ id: "4", name: "Modificar" },
+];
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("veiculo")
@@ -49,6 +56,27 @@ module.exports = {
 			const veicle = await Vehicle.findOne({
 				where: { id: user.currentCharacter.vehicleId },
 			});
+
+			const rows = [];
+			let currentRow = new ActionRowBuilder();
+
+			options.forEach((opt, index) => {
+				const button = new ButtonBuilder()
+					.setCustomId(opt.id)
+					.setLabel(opt.name)
+					.setStyle(ButtonStyle.Primary);
+
+				currentRow.addComponents(button);
+
+				if (
+					currentRow.components.length === 5 ||
+					index === options.length - 1
+				) {
+					rows.push(currentRow);
+					currentRow = new ActionRowBuilder();
+				}
+			});
+
 			//toggle if char is or not inside vehicle
 			await interaction.reply("Entrando no veículo");
 			await wait(1000);
@@ -62,57 +90,37 @@ module.exports = {
 
 			const followUpMessage = await interaction.followUp({
 				embeds: [findingsEmbed],
-				//components: rows,
-			});
-
-			/* const rows = [];
-			let currentRow = new ActionRowBuilder();
-
-			veicles.forEach((veicle, index) => {
-				const button = new ButtonBuilder()
-					.setCustomId(`veicle_${veicle.id}`)
-					.setLabel(`${veicle.type}-${veicle.name}`)
-					.setStyle(ButtonStyle.Primary);
-
-				currentRow.addComponents(button);
-
-				// Discord allows max 5 buttons per row
-				if (
-					currentRow.components.length === 5 ||
-					index === veicles.length - 1
-				) {
-					rows.push(currentRow);
-					currentRow = new ActionRowBuilder();
-				}
-			});
-			await interaction.reply("Andando e inspecionando os arredores...");
-			await wait(3000);
-
-			const findingsEmbed = new EmbedBuilder()
-				.setColor(0x0099ff)
-				.setTitle("Achados:")
-				.setDescription(
-					"Após andar e olhar os arredores você encontra:\nSelecione algo para interagir ",
-				);
-
-			const followUpMessage = await interaction.followUp({
-				embeds: [findingsEmbed],
 				components: rows,
 			});
 
-			// Create a button collector
 			const collector = followUpMessage.createMessageComponentCollector({
-				time: 10000, // Button expires after 10 seconds
+				time: 30000, // Button expires after 10 seconds
 			});
 
 			collector.on("collect", async (buttonInteraction) => {
-				if (!buttonInteraction.customId.startsWith("veicle_")) return;
-
-				await interactWithFoundVehicle(
-					buttonInteraction,
-					veicles,
-					user.currentCharacter,
-				);
+				switch (buttonInteraction.customId) {
+					case "1": // Sair
+						await buttonInteraction.reply({
+							content: "Você saiu do veículo!",
+							flags: MessageFlags.Ephemeral,
+						});
+						break;
+					case "2": // Pilotar
+						await buttonInteraction.update({
+							content: "Pilotando o veículo...",
+						});
+						break;
+					case "3": // Inventário
+						await buttonInteraction.update({
+							content: "Abrindo inventário...",
+						});
+						break;
+					case "4": // Modificar
+						await buttonInteraction.update({
+							content: "Abrindo menu de modificações...",
+						});
+						break;
+				}
 			});
 
 			// Disable all buttons when collector expires
@@ -129,7 +137,7 @@ module.exports = {
 						embeds: [findingsEmbed],
 					})
 					.catch(console.error);
-			}); */
+			});
 		} catch (error) {
 			console.error("Look command error:", error);
 			return interaction.reply("Ocorreu um erro ao buscar.");

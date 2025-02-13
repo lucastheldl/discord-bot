@@ -19,6 +19,11 @@ const Character = sequelize.define("characters", {
 	age: Sequelize.INTEGER,
 	class: Sequelize.ENUM("C", "B", "A", "SUPER", "MEGA", "OMEGA"),
 	username: Sequelize.STRING,
+	isInsideVehicle: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false,
+		allowNull: false,
+	},
 	vehicleId: {
 		type: Sequelize.INTEGER,
 		references: {

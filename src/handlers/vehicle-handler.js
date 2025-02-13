@@ -6,6 +6,7 @@ const {
 	MessageFlags,
 	SlashCommandBuilder,
 } = require("discord.js");
+const { battleManager } = require("./battle-handler");
 
 const options = [
 	{ id: "1", name: "Tentar roubar" },
@@ -68,6 +69,18 @@ async function interactWithFoundVehicle(buttonInteraction, veicles, character) {
 		}
 		if (interaction.customId === "2") {
 			//handle attack
+			/* const opponent = interaction.options.getUser("opponent");
+			const battle = battleManager.createBattle(
+				interaction.channelId,
+				interaction.user,
+				opponent,
+			);
+
+			if (!battle) {
+				return interaction.reply(
+					"A battle is already in progress in this channel!",
+				);
+			} */
 			collector.stop();
 			return;
 		}
