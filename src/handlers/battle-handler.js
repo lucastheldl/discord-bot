@@ -1,31 +1,28 @@
 class Battle {
-	constructor(channelId, firstPlayer, secondPlayer) {
-		this.channelId = channelId;
+	constructor(locationInfo, firstPlayer, secondPlayer) {
+		// Location info object containing type and ID
+		this.locationInfo = locationInfo; // { type: 'star'|'planet'|'location', id: number }
 		this.teams = {
-			red: [firstPlayer], // Store player objects
+			red: [firstPlayer],
 			blue: [secondPlayer],
 		};
-		this.currentTurn = firstPlayer.id; // Track whose turn it is
-		this.turnOrder = [firstPlayer.id, secondPlayer.id]; // Array to track turn order
+		this.currentTurn = firstPlayer.id;
+		this.turnOrder = [firstPlayer.id, secondPlayer.id];
 		this.active = true;
 	}
 
-	// Add a new player to a team
-	addPlayer(player, team) {
+	// Rest of battle methods remain the same
+	addCharacter(char, team) {
 		if (!this.active) return false;
 		if (!["red", "blue"].includes(team)) return false;
 
-		// Add to team
-		this.teams[team].push(player);
-
-		// Add to turn order after current player
+		this.teams[team].push(char);
 		const currentIndex = this.turnOrder.indexOf(this.currentTurn);
-		this.turnOrder.splice(currentIndex + 1, 0, player.id);
+		this.turnOrder.splice(currentIndex + 1, 0, char.id);
 
 		return true;
 	}
 
-	// Get next player's turn
 	nextTurn() {
 		const currentIndex = this.turnOrder.indexOf(this.currentTurn);
 		this.currentTurn =
@@ -33,88 +30,246 @@ class Battle {
 		return this.currentTurn;
 	}
 
-	// Check if it's a player's turn
-	isPlayerTurn(playerId) {
-		return this.currentTurn === playerId;
+	isPlayerTurn(characterId) {
+		return this.currentTurn === characterId;
 	}
 
-	// Get current battle status for embed
-	async getBattleStatus(sequelize) {
-		const redTeamStatus = await Promise.all(
-			this.teams.red.map(async (player) => {
-				const powers = await this.getPlayerPowers(player.id, sequelize);
-				return `${player.username} (Powers: ${powers.map((p) => p.name).join(", ")})`;
-			}),
-		);
-
-		const blueTeamStatus = await Promise.all(
-			this.teams.blue.map(async (player) => {
-				const powers = await this.getPlayerPowers(player.id, sequelize);
-				return `${player.username} (Powers: ${powers.map((p) => p.name).join(", ")})`;
-			}),
-		);
-
-		return {
-			red: redTeamStatus.join("\n"),
-			blue: blueTeamStatus.join("\n"),
-			currentTurn: this.currentTurn,
-		};
-	}
-
-	// Get player's powers from database
-	async getPlayerPowers(playerId, sequelize) {
-		// Assuming you have a Powers model
-		const Powers = sequelize.models.Powers;
+	async getPlayerPowers(/* playerId, sequelize */) {
+		/* const Powers = sequelize.models.Powers;
 		return await Powers.findAll({
 			where: {
 				userId: playerId,
 			},
-		});
+		}); */
+		const powers = [
+			{ id: "1", name: "fire ball" },
+			{ id: "2", name: "Yonar blast" },
+		];
+		return powers;
 	}
 
-	// Check if player is in battle
-	isPlayerInBattle(playerId) {
-		return this.turnOrder.includes(playerId);
+	isPlayerInBattle(characterId) {
+		return this.turnOrder.includes(characterId);
 	}
 
-	// Get player's team
-	getPlayerTeam(playerId) {
-		if (this.teams.red.some((p) => p.id === playerId)) return "red";
-		if (this.teams.blue.some((p) => p.id === playerId)) return "blue";
+	getPlayerTeam(characterId) {
+		if (this.teams.red.some((p) => p.id === characterId)) return "red";
+		if (this.teams.blue.some((p) => p.id === characterId)) return "blue";
 		return null;
 	}
 
-	// End battle
 	endBattle() {
 		this.active = false;
 	}
 }
 
-// Battle Manager to handle multiple battles
 class BattleManager {
 	constructor() {
-		this.battles = new Map(); // Store battles by channel ID
+		// Store battles by location type and ID
+		this.battles = new Map();
+	}
+
+	// Create a battle key from location info
+	createBattleKey(starId, planetId, locationId) {
+		return `star-${starId}-planet-${planetId}-location-${locationId}`;
 	}
 
 	// Create a new battle
-	createBattle(channelId, player1, player2) {
-		if (this.battles.has(channelId)) return null;
+	createBattle(starId, planetId, locationId, player1, player2) {
+		const battleKey = this.createBattleKey(starId, planetId, locationId);
 
-		const battle = new Battle(channelId, player1, player2);
-		this.battles.set(channelId, battle);
+		if (this.battles.has(battleKey)) return null;
+
+		const battle = new Battle(battleKey, player1, player2);
+
+		this.battles.set(battleKey, battle);
 		return battle;
 	}
 
-	// Get battle by channel ID
-	getBattle(channelId) {
-		return this.battles.get(channelId);
+	// Get battle by location
+	getBattle(starId, planetId, locationId) {
+		const battleKey = this.createBattleKey(starId, planetId, locationId);
+		return this.battles.get(battleKey);
 	}
 
 	// Remove battle
-	removeBattle(channelId) {
-		this.battles.delete(channelId);
+	removeBattle(starId, planetId, locationId) {
+		const battleKey = this.createBattleKey(starId, planetId, locationId);
+		this.battles.delete(battleKey);
 	}
+
+	// Check if player is in any battle
+	getPlayerBattle(characterId) {
+		for (const battle of this.battles.values()) {
+			if (battle.isPlayerInBattle(characterId)) {
+				return battle;
+			}
+		}
+		return null;
+	}
+
+	// Get all battles in a specific location type
+	/* getBattlesByLocationType(locationType) {
+		const battles = [];
+		for (const [key, battle] of this.battles.entries()) {
+			if (battle.locationInfo.type === locationType) {
+				battles.push(battle);
+			}
+		}
+		return battles;
+	} */
 }
 const battleManager = new BattleManager();
 
-module.exports = { Battle, battleManager };
+const {
+	EmbedBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+} = require("discord.js");
+
+async function battleFlow(interaction, battle) {
+	// Get current character
+	const currentChar = battle.teams[
+		battle.getPlayerTeam(battle.currentTurn)
+	].find((char) => char.id === battle.currentTurn);
+
+	// Check if current turn is a bot using isBot flag
+	if (currentChar.isBot) {
+		await handleBotTurn(interaction, battle, currentChar);
+	} else {
+		await handlePlayerTurn(interaction, battle, currentChar);
+	}
+}
+
+async function handleBotTurn(interaction, battle, bot) {
+	// Get bot's powers
+	const powers = await battle.getPlayerPowers(bot.id);
+
+	// Select random power
+	const randomPower = powers[Math.floor(Math.random() * powers.length)];
+
+	// Get the opposing team
+	const currentTeam = battle.getPlayerTeam(bot.id);
+	const opposingTeam = currentTeam === "red" ? "blue" : "red";
+	const target = battle.teams[opposingTeam][0]; // Target first opponent
+
+	// Create and send battle status embed
+	const embed = createBattleEmbed(battle);
+	await interaction.channel.send({ embeds: [embed] });
+
+	// Add a small delay
+	await new Promise((resolve) => setTimeout(resolve, 2000));
+
+	// Show bot's action
+	await interaction.channel.send(
+		`${bot.dataValues.name} used ${randomPower.name} on ${target.name}!`,
+	);
+	await new Promise((resolve) => setTimeout(resolve, 3000));
+	// Move to next turn
+	battle.nextTurn();
+
+	// Continue battle flow
+	await battleFlow(interaction, battle);
+}
+
+async function handlePlayerTurn(interaction, battle, player) {
+	const powers = await battle.getPlayerPowers(/* player.id */);
+
+	const embed = createBattleEmbed(battle);
+
+	const actionRow = new ActionRowBuilder().addComponents(
+		powers.map((power) =>
+			new ButtonBuilder()
+				.setCustomId(`power_${power.id}_${battle.currentTurn}`)
+				.setLabel(power.name)
+				.setStyle(ButtonStyle.Primary),
+		),
+	);
+
+	const replyMessage = await interaction.followUp({
+		embeds: [embed],
+		components: [actionRow],
+	});
+
+	const filter = (i) => {
+		const [prefix, powerId, turn] = i.customId.split("_");
+		return (
+			prefix === "power" && turn === String(battle.currentTurn) /* &&
+			i.user.id === player.id */
+		);
+	};
+
+	const collector = replyMessage.createMessageComponentCollector({
+		filter,
+		time: 10000,
+	});
+
+	collector.on("collect", async (i) => {
+		const [_, powerId, turn] = i.customId.split("_");
+		const usedPower = powers.find((p) => p.id === powerId);
+		console.log(powerId);
+		const currentTeam = battle.getPlayerTeam(battle.currentTurn);
+		const opposingTeam = currentTeam === "red" ? "blue" : "red";
+		const target = battle.teams[opposingTeam][0].isBot
+			? battle.teams[opposingTeam][0].dataValues
+			: battle.teams[opposingTeam][0];
+
+		await i.reply(`${player.name} used ${usedPower.name} on ${target.name}!`);
+		collector.stop();
+
+		await new Promise((resolve) => setTimeout(resolve, 3000));
+		battle.nextTurn();
+		await battleFlow(interaction, battle);
+	});
+
+	collector.on("end", async (collected, reason) => {
+		if (reason === "time") {
+			await interaction.channel.send(`${player.name}'s turn timed out!`);
+			battle.nextTurn();
+			await battleFlow(interaction, battle);
+		}
+	});
+}
+
+function createBattleEmbed(battle) {
+	const currentChar = battle.teams[
+		battle.getPlayerTeam(battle.currentTurn)
+	].find((char) => char.id === battle.currentTurn);
+	const embed = new EmbedBuilder()
+		.setTitle("Battle in Progress")
+		.setColor("#ff0000")
+		.setThumbnail(currentChar.dataValues.img);
+
+	/* const redTeamInfo = battle.teams.red
+		.map((char) => {
+			const turnIndicator =
+				char.id === battle.currentTurn ? " (Current Turn)" : "";
+			const botIndicator = char.isBot ? " [BOT]" : "";
+			return `${char.name}${turnIndicator}${botIndicator}`;
+		})
+		.join("\n");
+
+	const blueTeamInfo = battle.teams.blue
+		.map((char) => {
+			const turnIndicator =
+				char.id === battle.currentTurn ? " (Current Turn)" : "";
+			const botIndicator = char.isBot ? " [BOT]" : "";
+			return `${char.name}${turnIndicator}${botIndicator}`;
+		})
+		.join("\n"); */
+
+	/* embed.addFields(
+		{ name: "Red Team", value: redTeamInfo || "No players", inline: true },
+		{ name: "Blue Team", value: blueTeamInfo || "No players", inline: true },
+	); */
+
+	embed.addFields({
+		name: "Turno atual",
+		value: `${currentChar.dataValues.name}'s turn!`,
+	});
+
+	return embed;
+}
+
+module.exports = { Battle, battleManager, battleFlow };

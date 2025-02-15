@@ -6,7 +6,7 @@ const {
 	MessageFlags,
 	SlashCommandBuilder,
 } = require("discord.js");
-const { battleManager } = require("./battle-handler");
+const { battleManager, battleFlow } = require("./battle-handler");
 
 const options = [
 	{ id: "1", name: "Tentar roubar" },
@@ -69,18 +69,29 @@ async function interactWithFoundVehicle(buttonInteraction, veicles, character) {
 		}
 		if (interaction.customId === "2") {
 			//handle attack
-			/* const opponent = interaction.options.getUser("opponent");
+
+			//const locationType = playerData.locationType; // 'star', 'planet', or 'location'
+			//const locationId = playerData.locationId;
+			const starId = 1;
+			const planetId = 1;
+			const locationId = 1;
+
+			// Create battle in that specific location
 			const battle = battleManager.createBattle(
-				interaction.channelId,
-				interaction.user,
-				opponent,
+				starId,
+				planetId,
+				locationId,
+				character,
+				{ ...veicle, isBot: true }, //oponnent
 			);
 
 			if (!battle) {
 				return interaction.reply(
-					"A battle is already in progress in this channel!",
+					"A battle is already in progress in this location!",
 				);
-			} */
+			}
+			await interaction.reply("Você se prepara para atacar!");
+			await battleFlow(interaction, battle);
 			collector.stop();
 			return;
 		}
