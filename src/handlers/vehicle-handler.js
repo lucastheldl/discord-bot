@@ -6,11 +6,14 @@ const {
 	MessageFlags,
 	SlashCommandBuilder,
 } = require("discord.js");
+const { battleManager, battleFlow } = require("./battle-handler");
+
 const options = [
 	{ id: "1", name: "Tentar roubar" },
 	{ id: "2", name: "Atacar" },
 ];
-async function interactWithFoundVehicle(buttonInteraction, veicles) {
+
+async function interactWithFoundVehicle(buttonInteraction, veicles, character) {
 	const veiclesId = buttonInteraction.customId.split("_")[1];
 	const veicle = veicles.find((p) => p.id === Number.parseInt(veiclesId));
 
@@ -27,7 +30,6 @@ async function interactWithFoundVehicle(buttonInteraction, veicles) {
 
 		currentRow.addComponents(button);
 
-		// Discord allows max 5 buttons per row
 		if (currentRow.components.length === 5 || index === options.length - 1) {
 			rows.push(currentRow);
 			currentRow = new ActionRowBuilder();
@@ -40,9 +42,80 @@ async function interactWithFoundVehicle(buttonInteraction, veicles) {
 		.setDescription(veicle.description)
 		.setImage(veicle.img);
 
+	// Reply first
 	await buttonInteraction.reply({
 		embeds: [resultEmbed],
 		components: rows,
+	});
+
+	// Then fetch the reply message
+	const replyMessage = await buttonInteraction.fetchReply();
+
+	// Create collector on the fetched message
+	const collector = replyMessage.createMessageComponentCollector({
+		time: 10000,
+	});
+
+	collector.on("collect", async (interaction) => {
+		if (interaction.customId === "1") {
+			//set vehicle as player current vehicle
+			await character.update({
+				vehicleId: veicle.id,
+			});
+			await interaction.reply("Você rouba o veículo com sucesso!");
+
+			collector.stop();
+			return;
+		}
+		if (interaction.customId === "2") {
+			//handle attack
+
+			//const locationType = playerData.locationType; // 'star', 'planet', or 'location'
+			//const locationId = playerData.locationId;
+			const starId = 1;
+			const planetId = 1;
+			const locationId = 1;
+
+			// Create battle in that specific location
+			const battle = battleManager.createBattle(
+				starId,
+				planetId,
+				locationId,
+				character,
+				{ ...veicle, isBot: true }, //oponnent
+			);
+
+			if (!battle) {
+				return interaction.reply(
+					"A battle is already in progress in this location!",
+				);
+			}
+			await interaction.reply("Você se prepara para atacar!");
+			await battleFlow(interaction, battle);
+			collector.stop();
+			return;
+		}
+	});
+
+	collector.on("end", async () => {
+		// Disable all buttons
+		// biome-ignore lint/complexity/noForEach: <explanation>
+		rows.forEach((row) => {
+			// biome-ignore lint/complexity/noForEach: <explanation>
+			row.components.forEach((button) => {
+				button.setDisabled(true);
+			});
+		});
+
+		// Update the message with disabled buttons
+		try {
+			await replyMessage.edit({
+				embeds: [resultEmbed],
+				components: rows,
+			});
+		} catch (error) {
+			console.error("Failed to update message:", error);
+		}
 	});
 }
 

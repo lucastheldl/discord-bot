@@ -16,41 +16,68 @@ Item.belongsToMany(Character, {
 });
 
 //character-veicle
-Character.belongsTo(Vehicle, { foreignKey: "vehicleId" });
-Vehicle.hasOne(Character, { foreignKey: "vehicleId" });
+Character.belongsTo(Vehicle, { foreignKey: "vehicleId", as: "currentVehicle" });
+Vehicle.hasMany(Character, { foreignKey: "vehicleId", as: "characters" });
+
 //planets,locations - character
-Planet.hasMany(Vehicle);
+Planet.hasMany(Vehicle, {
+	foreignKey: "currentPlanetId",
+	as: "vehicles",
+});
 Vehicle.belongsTo(Planet, {
 	foreignKey: "currentPlanetId",
 	as: "currentPlanet",
 });
-Location.hasMany(Vehicle);
+Location.hasMany(Vehicle, {
+	foreignKey: "currentLocationId",
+	as: "vehicles",
+});
 Vehicle.belongsTo(Location, {
 	foreignKey: "currentLocationId",
 	as: "currentLocation",
 });
+
 //user-character
-User.hasMany(Character);
-Character.belongsTo(User);
+User.hasMany(Character, {
+	foreignKey: "userId",
+	as: "characters",
+});
+Character.belongsTo(User, {
+	foreignKey: "userId",
+	as: "User",
+});
 User.belongsTo(Character, {
 	as: "currentCharacter",
 	foreignKey: "currentCharacterId",
 });
+
 //planets,locations - character
-Planet.hasMany(Character);
+Planet.hasMany(Character, {
+	foreignKey: "currentPlanetId",
+	as: "characters",
+});
 Character.belongsTo(Planet, {
 	foreignKey: "currentPlanetId",
 	as: "currentPlanet",
 });
-Location.hasMany(Character);
+Location.hasMany(Character, {
+	foreignKey: "currentLocationId",
+	as: "characters",
+});
 Character.belongsTo(Location, {
 	foreignKey: "currentLocationId",
 	as: "currentLocation",
 });
 
 //location-planet
-Planet.hasMany(Location);
-Location.belongsTo(Planet);
+Planet.hasMany(Location, {
+	foreignKey: "currentPlanetId",
+	as: "locations",
+});
+Location.belongsTo(Planet, {
+	foreignKey: "currentPlanetId",
+	as: "Planet",
+});
 
 module.exports = {
 	Item,
