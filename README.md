@@ -1,4 +1,4 @@
-A more complex rpg discord bot
+A more complex rpg discord bot that let users play as a rpg character on discord and save their progress in sqlite sb.
 
 [x] Create character
 
