@@ -128,35 +128,35 @@ Character.init(
     },
     vehicleId: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
         model: "vehicles",
         key: "id",
       },
-      allowNull: true,
     },
     currentPlanetId: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
         model: "planets",
         key: "id",
       },
-      allowNull: true,
     },
     currentLocationId: {
       type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
         model: "locations",
         key: "id",
       },
-      allowNull: true,
     },
     userId: {
       type: DataTypes.STRING,
+      allowNull: false,
       references: {
         model: "users",
         key: "id",
       },
-      allowNull: false,
     },
     img: {
       type: DataTypes.STRING,
