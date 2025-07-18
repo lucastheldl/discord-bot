@@ -1,16 +1,13 @@
 import { sequelize } from "../db-connection";
-import { Model, DataTypes, Optional } from "sequelize";
+import { Model, DataTypes, type Optional } from "sequelize";
 
-// Define the item class enum
 export const ItemClass = ["C", "B", "A", "SUPER", "MEGA", "OMEGA"] as const;
-type ItemClassType = (typeof ItemClass)[number];
+export type ItemClassType = (typeof ItemClass)[number];
 
-// Define the item type enum
 const ItemType = ["ore", "weapon", "armor", "consumable", "misc"] as const;
-type ItemTypeType = (typeof ItemType)[number];
+export type ItemTypeType = (typeof ItemType)[number];
 
-// Interface for item attributes
-interface ItemAttributes {
+export interface ItemAttributes {
   id: number;
   name: string;
   type: ItemTypeType;
@@ -19,10 +16,10 @@ interface ItemAttributes {
   class: ItemClassType;
 }
 
-// Interface for creation attributes
-interface ItemCreationAttributes extends Optional<ItemAttributes, "id"> {}
+export interface ItemCreationAttributes
+  extends Optional<ItemAttributes, "id"> {}
 
-class Item
+export class Item
   extends Model<ItemAttributes, ItemCreationAttributes>
   implements ItemAttributes
 {
@@ -32,8 +29,6 @@ class Item
   public defence!: number | null;
   public damage!: number | null;
   public class!: ItemClassType;
-
-  // Timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -75,11 +70,3 @@ Item.init(
     timestamps: true,
   }
 );
-
-export { Item };
-export type {
-  ItemAttributes,
-  ItemCreationAttributes,
-  ItemClassType,
-  ItemTypeType,
-};

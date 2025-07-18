@@ -1,112 +1,119 @@
-const wait = require("node:timers/promises").setTimeout;
-const { where } = require("sequelize");
-const { Character, Item, User, Vehicle } = require("../../models");
-const { interactWithFoundVehicle } = require("../../handlers/vehicle-handler");
-const {
-	EmbedBuilder,
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	MessageFlags,
-	SlashCommandBuilder,
-} = require("discord.js");
+import {
+  SlashCommandBuilder,
+  type CommandInteraction,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  APIActionRowComponent,
+  ComponentType,
+} from "discord.js";
+import { setTimeout as wait } from "node:timers/promises";
+import { Character, User, Vehicle } from "../../models";
+import { interactWithFoundVehicle } from "../../handlers/vehicle-handler";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("buscar")
-		.setDescription("Anda pelos arredores"),
-	async execute(interaction) {
-		const userId = interaction.user.id;
-		try {
-			const user = await User.findByPk(userId, {
-				include: [
-					{
-						model: Character,
-						as: "currentCharacter",
-						attributes: ["id", "name", "currentLocationId", "currentPlanetId"],
-					},
-				],
-			});
-			if (!user) {
-				return interaction.reply("Você não possui personagens");
-			}
-			//check if theres a character
-			if (!user.currentCharacter) {
-				return interaction.reply("Você não possui um personagem selecionado.");
-			}
+export default {
+  data: new SlashCommandBuilder()
+    .setName("buscar")
+    .setDescription("Anda pelos arredores"),
 
-			const veicles = await Vehicle.findAll({
-				where: { currentLocationId: user.currentCharacter.currentLocationId },
-			});
+  async execute(interaction: CommandInteraction) {
+    const userId = interaction.user.id;
 
-			const rows = [];
-			let currentRow = new ActionRowBuilder();
+    try {
+      const user = await User.findByPk(userId, {
+        include: [
+          {
+            model: Character,
+            as: "currentCharacter",
+            attributes: ["id", "name", "currentLocationId", "currentPlanetId"],
+          },
+        ],
+      });
 
-			veicles.forEach((veicle, index) => {
-				const button = new ButtonBuilder()
-					.setCustomId(`veicle_${veicle.id}`)
-					.setLabel(`${veicle.type}-${veicle.name}`)
-					.setStyle(ButtonStyle.Primary);
+      if (!user) {
+        return interaction.reply("Você não possui personagens");
+      }
 
-				currentRow.addComponents(button);
+      if (!user.currentCharacter) {
+        return interaction.reply("Você não possui um personagem selecionado.");
+      }
 
-				// Discord allows max 5 buttons per row
-				if (
-					currentRow.components.length === 5 ||
-					index === veicles.length - 1
-				) {
-					rows.push(currentRow);
-					currentRow = new ActionRowBuilder();
-				}
-			});
-			await interaction.reply("Andando e inspecionando os arredores...");
-			await wait(3000);
+      const vehicles = await Vehicle.findAll({
+        where: { currentLocationId: user.currentCharacter.currentLocationId },
+      });
 
-			const findingsEmbed = new EmbedBuilder()
-				.setColor(0x0099ff)
-				.setTitle("Achados:")
-				.setDescription(
-					"Após andar e olhar os arredores você encontra:\nSelecione algo para interagir ",
-				);
+      const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+      let currentRow = new ActionRowBuilder<ButtonBuilder>();
 
-			const followUpMessage = await interaction.followUp({
-				embeds: [findingsEmbed],
-				components: rows,
-			});
+      vehicles.forEach((vehicle, index) => {
+        const button = new ButtonBuilder()
+          .setCustomId(`veicle_${vehicle.id}`)
+          .setLabel(`${vehicle.type}-${vehicle.name}`)
+          .setStyle(ButtonStyle.Primary);
 
-			// Create a button collector
-			const collector = followUpMessage.createMessageComponentCollector({
-				time: 10000, // Button expires after 10 seconds
-			});
+        currentRow.addComponents(button);
 
-			collector.on("collect", async (buttonInteraction) => {
-				if (!buttonInteraction.customId.startsWith("veicle_")) return;
+        if (
+          currentRow.components.length === 5 ||
+          index === vehicles.length - 1
+        ) {
+          rows.push(currentRow);
+          currentRow = new ActionRowBuilder<ButtonBuilder>();
+        }
+      });
 
-				await interactWithFoundVehicle(
-					buttonInteraction,
-					veicles,
-					user.currentCharacter,
-				);
-			});
+      await interaction.reply("Andando e inspecionando os arredores...");
+      await wait(3000);
 
-			// Disable all buttons when collector expires
-			collector.on("end", () => {
-				// biome-ignore lint/complexity/noForEach: <explanation>
-				rows.forEach((row) => {
-					// biome-ignore lint/complexity/noForEach: <explanation>
-					row.components.forEach((button) => button.setDisabled(true));
-				});
+      const findingsEmbed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle("Achados:")
+        .setDescription(
+          "Após andar e olhar os arredores você encontra:\nSelecione algo para interagir "
+        );
 
-				followUpMessage
-					.edit({
-						components: rows,
-						embeds: [findingsEmbed],
-					})
-					.catch(console.error);
-			});
-		} catch (error) {
-			console.error("Look command error:", error);
-			return interaction.reply("Ocorreu um erro ao buscar.");
-		}
-	},
+      const followUpMessage = await interaction.followUp({
+        embeds: [findingsEmbed],
+        components: rows.map((row) => row.toJSON()),
+      });
+
+      const collector = followUpMessage.createMessageComponentCollector({
+        time: 10000,
+      });
+
+      collector.on("collect", async (buttonInteraction) => {
+        if (buttonInteraction.componentType !== ComponentType.Button) {
+          // If it's not a button, you might want to log an error or just return
+          // This ensures that 'collectedInteraction' is now treated as a ButtonInteraction
+          return;
+        }
+
+        // Now, 'collectedInteraction' is correctly inferred as ButtonInteraction
+        if (!buttonInteraction.customId.startsWith("veicle_")) return;
+
+        await interactWithFoundVehicle(
+          buttonInteraction,
+          vehicles,
+          user.currentCharacter!
+        );
+      });
+
+      collector.on("end", () => {
+        rows.forEach((row) => {
+          row.components.forEach((button) => button.setDisabled(true));
+        });
+
+        followUpMessage
+          .edit({
+            components: rows.map((row) => row.toJSON()),
+            embeds: [findingsEmbed],
+          })
+          .catch(console.error);
+      });
+    } catch (error) {
+      console.error("Look command error:", error);
+      return interaction.reply("Ocorreu um erro ao buscar.");
+    }
+  },
 };

@@ -1,6 +1,5 @@
 import { Sequelize } from "sequelize";
 
-// Define interface for database configuration
 interface DatabaseConfig {
   database: string;
   username: string;
@@ -9,8 +8,7 @@ interface DatabaseConfig {
     host: string;
     dialect: "sqlite" | "mysql" | "postgres" | "mssql";
     logging: boolean | ((sql: string, timing?: number) => void);
-    storage?: string; // SQLite specific
-    // Add other dialect-specific options here as needed
+    storage?: string;
   };
 }
 
@@ -22,12 +20,10 @@ const config: DatabaseConfig = {
     host: "localhost",
     dialect: "sqlite",
     logging: false,
-    // SQLite only
     storage: "./db/database.sqlite",
   },
 };
 
-// Create Sequelize instance with type checking
 const sequelize = new Sequelize(
   config.database,
   config.username,

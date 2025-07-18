@@ -3,35 +3,14 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  BaseInteraction,
-  MessageComponentInteraction,
-  InteractionReplyOptions,
+  type BaseInteraction,
+  type MessageComponentInteraction,
+  type InteractionReplyOptions,
   ChannelType,
+  ComponentType,
+  APIActionRowComponent,
 } from "discord.js";
-
-// Core battle types
-type Team = "red" | "blue";
-type LocationType = "star" | "planet" | "location";
-type Power = { id: string; name: string };
-
-interface LocationInfo {
-  type: LocationType;
-  id: number;
-}
-
-interface BattleParticipant {
-  id: number;
-  name: string;
-  img?: string;
-  isBot?: boolean;
-  health: number;
-  maxHealth: number;
-  energy: number;
-  maxEnergy: number;
-  damage?: number;
-  armor?: number;
-  class?: string;
-}
+import type { BattleParticipant, Team, Power, LocationInfo } from "../types";
 
 class Battle {
   locationInfo: LocationInfo;
@@ -62,7 +41,6 @@ class Battle {
     this.teams[team].push(char);
     const currentIndex = this.turnOrder.indexOf(this.currentTurn);
     this.turnOrder.splice(currentIndex + 1, 0, char.id);
-
     return true;
   }
 
@@ -122,7 +100,6 @@ class BattleManager {
     player2: BattleParticipant
   ): Battle | null {
     const battleKey = this.createBattleKey(starId, planetId, locationId);
-
     if (this.battles.has(battleKey)) return null;
 
     const battle = new Battle(
@@ -130,7 +107,6 @@ class BattleManager {
       player1,
       player2
     );
-
     this.battles.set(battleKey, battle);
     return battle;
   }
@@ -202,9 +178,11 @@ async function handleBotTurn(
   await interaction.channel.send({ embeds: [embed] });
 
   await new Promise((resolve) => setTimeout(resolve, 2000));
+
   await interaction.channel.send(
     `${bot.name} used ${randomPower.name} on ${target.name}!`
   );
+
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   battle.nextTurn();
@@ -232,12 +210,13 @@ async function handlePlayerTurn(
 
   const replyOptions: InteractionReplyOptions = {
     embeds: [embed],
-    components: [actionRow],
+    components: [actionRow.toJSON()],
   };
 
   const replyMessage = await interaction.followUp(replyOptions);
 
   const filter = (i: MessageComponentInteraction) => {
+    if (i.componentType !== ComponentType.Button) return false;
     const [prefix, powerId, turn] = i.customId.split("_");
     return prefix === "power" && Number(turn) === battle.currentTurn;
   };
@@ -248,6 +227,8 @@ async function handlePlayerTurn(
   });
 
   collector.on("collect", async (i: MessageComponentInteraction) => {
+    if (!i.isButton()) return;
+
     const [_, powerId] = i.customId.split("_");
     const usedPower = powers.find((p) => p.id === powerId)!;
     const currentTeam = battle.getPlayerTeam(battle.currentTurn)!;
@@ -258,6 +239,7 @@ async function handlePlayerTurn(
     collector.stop();
 
     await new Promise((resolve) => setTimeout(resolve, 3000));
+
     battle.nextTurn();
     await battleFlow(interaction, battle);
   });
@@ -296,4 +278,4 @@ function createBattleEmbed(battle: Battle): EmbedBuilder {
     });
 }
 
-export { Battle, battleManager, battleFlow, BattleParticipant };
+export { Battle, battleManager, battleFlow, type BattleParticipant };

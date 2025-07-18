@@ -1,7 +1,11 @@
 import { sequelize } from "../db-connection";
-import { Model, DataTypes, Optional, EnumDataType } from "sequelize";
+import { Model, DataTypes, type Optional } from "sequelize";
+import type { Planet } from "./planet";
+import type { Location } from "./location";
+import type { Vehicle } from "./vehicle";
+import type { User } from "./user";
+import type { Item } from "./item";
 
-// Define the character class enum
 export const CharacterClass = [
   "C",
   "B",
@@ -10,10 +14,10 @@ export const CharacterClass = [
   "MEGA",
   "OMEGA",
 ] as const;
-type CharacterClassType = (typeof CharacterClass)[number];
 
-// Interface for character attributes
-interface CharacterAttributes {
+export type CharacterClassType = (typeof CharacterClass)[number];
+
+export interface CharacterAttributes {
   id: number;
   name: string;
   description?: string | null;
@@ -29,13 +33,15 @@ interface CharacterAttributes {
   currentPlanetId?: number | null;
   currentLocationId?: number | null;
   userId: string;
+  img?: string;
+  damage?: number;
+  armor?: number;
 }
 
-// Interface for creation attributes (optional fields can be omitted during creation)
-interface CharacterCreationAttributes
+export interface CharacterCreationAttributes
   extends Optional<CharacterAttributes, "id"> {}
 
-class Character
+export class Character
   extends Model<CharacterAttributes, CharacterCreationAttributes>
   implements CharacterAttributes
 {
@@ -50,16 +56,25 @@ class Character
   public class!: CharacterClassType;
   public username!: string;
   public isInsideVehicle!: boolean;
-
-  // Foreign keys
   public vehicleId!: number | null;
   public currentPlanetId!: number | null;
   public currentLocationId!: number | null;
   public userId!: string;
-
-  // Timestamps
+  public img?: string;
+  public damage?: number;
+  public armor?: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // Association properties
+  public readonly currentPlanet?: Planet;
+  public readonly currentLocation?: Location;
+  public readonly currentVehicle?: Vehicle;
+  public readonly User?: User;
+  public readonly items?: (Item & { characterItem: any })[];
+
+  // Association methods
+  public addItem!: (item: Item, options?: any) => Promise<void>;
 }
 
 Character.init(
@@ -143,18 +158,25 @@ Character.init(
       },
       allowNull: false,
     },
+    img: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    damage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    armor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
   },
   {
     sequelize,
     modelName: "characters",
-    tableName: "characters", // Explicit table name
-    timestamps: true, // Ensure timestamps are enabled
+    tableName: "characters",
+    timestamps: true,
   }
 );
-
-export { Character };
-export type {
-  CharacterAttributes,
-  CharacterCreationAttributes,
-  CharacterClassType,
-};

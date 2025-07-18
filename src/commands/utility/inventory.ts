@@ -1,74 +1,73 @@
-const { SlashCommandBuilder } = require("discord.js");
-const wait = require("node:timers/promises").setTimeout;
-const { Character, Item, User } = require("../../models");
-const { EmbedBuilder } = require("discord.js");
+import {
+  SlashCommandBuilder,
+  type CommandInteraction,
+  EmbedBuilder,
+} from "discord.js";
+import { Character, Item, User } from "../../models";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("invent")
-		.setDescription("Mostra o inventario do personagem"),
-	async execute(interaction) {
-		const userId = interaction.user.id;
+export default {
+  data: new SlashCommandBuilder()
+    .setName("invent")
+    .setDescription("Mostra o inventario do personagem"),
 
-		try {
-			//gets user selected character
-			const user = await User.findByPk(userId, {
-				include: ["currentCharacter"],
-			});
-			if (!user) {
-				return interaction.reply("Você não possui personagens");
-			}
-			//check if theres a character
-			if (!user.currentCharacter) {
-				return interaction.reply("Você não possui um personagem selecionado.");
-			}
+  async execute(interaction: CommandInteraction) {
+    const userId = interaction.user.id;
 
-			const character = await Character.findOne({
-				where: { id: user.currentCharacter.id },
-				include: [
-					{
-						model: Item,
-						through: { attributes: ["quantity", "equipped"] }, // This excludes the junction table attributes
-					},
-				],
-			});
+    try {
+      const user = await User.findByPk(userId, {
+        include: ["currentCharacter"],
+      });
 
-			if (!character) {
-				return interaction.reply("Este usuário não possui um personagem.");
-			}
+      if (!user) {
+        return interaction.reply("Você não possui personagens");
+      }
 
-			const itemsList =
-				character.items
-					.map((item) => {
-						const equippedStatus = item.characterItem.equipped
-							? "(Equipado)"
-							: "";
-						const quantity =
-							item.characterItem.quantity >= 1
-								? `x${item.characterItem.quantity}`
-								: "";
+      if (!user.currentCharacter) {
+        return interaction.reply("Você não possui um personagem selecionado.");
+      }
 
-						return (
-							`• **${item.name}** ${quantity} ${equippedStatus}\n` +
-							`  Tipo: ${item.type} | Class: **${item.class}**` +
-							`${item.damage ? ` | Dmg: **${item.damage}**` : ""}` +
-							`${item.defence ? ` | Def: **${item.defence}**` : ""}`
-						);
-					})
-					.join("\n") || "Nenhum item encontrado";
+      const character = await Character.findOne({
+        where: { id: user.currentCharacter.id },
+        include: [
+          {
+            model: Item,
+            through: { attributes: ["quantity", "equipped"] },
+          },
+        ],
+      });
 
-			const inventoryEmbed = new EmbedBuilder()
-				.setColor(0x0099ff)
-				.setTitle(`Inventário de ${character.name}`)
-				.addFields({ name: "🔹 Items", value: itemsList, inline: false });
+      if (!character) {
+        return interaction.reply("Este usuário não possui um personagem.");
+      }
 
-			return await interaction.reply({ embeds: [inventoryEmbed] });
-		} catch (error) {
-			console.error("Inventory command error:", error);
-			return interaction.reply("Ocorreu um erro ao buscar o inventário.");
-			/* return interaction.reply(
-				"Something went wrong with getting character inventory",
-			); */
-		}
-	},
+      const itemsList =
+        character.items
+          ?.map((item: any) => {
+            const equippedStatus = item.characterItem.equipped
+              ? "(Equipado)"
+              : "";
+            const quantity =
+              item.characterItem.quantity >= 1
+                ? `x${item.characterItem.quantity}`
+                : "";
+            return (
+              `• **${item.name}** ${quantity} ${equippedStatus}\n` +
+              `  Tipo: ${item.type} | Class: **${item.class}**` +
+              `${item.damage ? ` | Dmg: **${item.damage}**` : ""}` +
+              `${item.defence ? ` | Def: **${item.defence}**` : ""}`
+            );
+          })
+          .join("\n") || "Nenhum item encontrado";
+
+      const inventoryEmbed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(`Inventário de ${character.name}`)
+        .addFields({ name: "🔹 Items", value: itemsList, inline: false });
+
+      return await interaction.reply({ embeds: [inventoryEmbed] });
+    } catch (error) {
+      console.error("Inventory command error:", error);
+      return interaction.reply("Ocorreu um erro ao buscar o inventário.");
+    }
+  },
 };

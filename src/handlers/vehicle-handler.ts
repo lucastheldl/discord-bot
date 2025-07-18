@@ -1,25 +1,28 @@
 import {
-  ButtonInteraction,
+  type ButtonInteraction,
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  type Message,
+  ComponentType,
+  APIActionRowComponent,
 } from "discord.js";
-import { Vehicle } from "../models/vehicle";
-import { Character } from "../models/character";
-import { battleManager, battleFlow, BattleParticipant } from "./battle-handler";
-
-interface VehicleOption {
-  id: string;
-  name: string;
-}
+import type { Vehicle } from "../models/vehicle";
+import type { Character } from "../models/character";
+import {
+  battleManager,
+  battleFlow,
+  type BattleParticipant,
+} from "./battle-handler";
+import type { VehicleOption } from "../types";
 
 const options: VehicleOption[] = [
   { id: "1", name: "Tentar roubar" },
   { id: "2", name: "Atacar" },
 ];
 
-async function interactWithFoundVehicle(
+export async function interactWithFoundVehicle(
   buttonInteraction: ButtonInteraction,
   vehicles: Vehicle[],
   character: Character
@@ -52,17 +55,20 @@ async function interactWithFoundVehicle(
     .setDescription(vehicle.description)
     .setImage(vehicle.img || null);
 
-  await buttonInteraction.reply({
+  const replyMessage = (await buttonInteraction.reply({
     embeds: [resultEmbed],
-    components: rows,
-  });
+    components: rows.map((row) => row.toJSON()),
+    fetchReply: true,
+  })) as Message;
 
-  const replyMessage = await buttonInteraction.fetchReply();
   const collector = replyMessage.createMessageComponentCollector({
+    filter: (i) => i.componentType === ComponentType.Button,
     time: 10000,
   });
 
-  collector.on("collect", async (interaction: ButtonInteraction) => {
+  collector.on("collect", async (interaction) => {
+    if (!interaction.isButton()) return;
+
     if (interaction.customId === "1") {
       await character.update({
         vehicleId: vehicle.id,
@@ -97,7 +103,7 @@ async function interactWithFoundVehicle(
         name: vehicle.name,
         img: vehicle.img,
         isBot: true,
-        health: vehicle.armor * 10, // Example calculation
+        health: vehicle.armor * 10,
         maxHealth: vehicle.armor * 10,
         energy: vehicle.maxFuel,
         maxEnergy: vehicle.maxFuel,
@@ -129,21 +135,21 @@ async function interactWithFoundVehicle(
   });
 
   collector.on("end", async () => {
-    rows.forEach((row) => {
+    const disabledRows = rows.map((row) => {
+      const newRow = new ActionRowBuilder<ButtonBuilder>();
       row.components.forEach((button) => {
-        button.setDisabled(true);
+        newRow.addComponents(ButtonBuilder.from(button).setDisabled(true));
       });
+      return newRow;
     });
 
     try {
       await replyMessage.edit({
         embeds: [resultEmbed],
-        components: rows,
+        components: disabledRows.map((row) => row.toJSON()),
       });
     } catch (error) {
       console.error("Failed to update message:", error);
     }
   });
 }
-
-export { interactWithFoundVehicle };

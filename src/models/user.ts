@@ -1,22 +1,21 @@
 import { sequelize } from "../db-connection";
 import { Model, DataTypes } from "sequelize";
-import { Character } from "./character";
+import type { Character } from "./character";
 
-interface UserAttributes {
+export interface UserAttributes {
   id: string;
   name: string;
   currentCharacterId?: number | null;
 }
 
-class User extends Model<UserAttributes> implements UserAttributes {
+export class User extends Model<UserAttributes> implements UserAttributes {
   public id!: string;
   public name!: string;
   public currentCharacterId!: number | null;
-
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  // Associations will be added by Sequelize
+  // Association properties
   public readonly Characters?: Character[];
   public readonly currentCharacter?: Character;
 }
@@ -35,10 +34,6 @@ User.init(
     },
     currentCharacterId: {
       type: DataTypes.INTEGER,
-      references: {
-        model: Character,
-        key: "id",
-      },
       allowNull: true,
     },
   },
@@ -49,6 +44,3 @@ User.init(
     timestamps: true,
   }
 );
-
-export { User };
-export type { UserAttributes };

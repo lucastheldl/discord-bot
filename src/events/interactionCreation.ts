@@ -1,34 +1,36 @@
-const { Events, MessageFlags } = require("discord.js");
+import { Events, type Interaction, MessageFlags } from "discord.js";
+import type { CustomClient } from "../index";
 
-module.exports = {
-	name: Events.InteractionCreate,
-	async execute(interaction) {
-		if (!interaction.isChatInputCommand()) return;
+export default {
+  name: Events.InteractionCreate,
+  async execute(interaction: Interaction) {
+    if (!interaction.isChatInputCommand()) return;
 
-		const command = interaction.client.commands.get(interaction.commandName);
+    const client = interaction.client as CustomClient;
+    const command = client.commands.get(interaction.commandName);
 
-		if (!command) {
-			console.error(
-				`No command matching ${interaction.commandName} was found.`,
-			);
-			return;
-		}
+    if (!command) {
+      console.error(
+        `No command matching ${interaction.commandName} was found.`
+      );
+      return;
+    }
 
-		try {
-			await command.execute(interaction);
-		} catch (error) {
-			console.error(error);
-			if (interaction.replied || interaction.deferred) {
-				await interaction.followUp({
-					content: "There was an error while executing this command!",
-					flags: MessageFlags.Ephemeral,
-				});
-			} else {
-				await interaction.reply({
-					content: "There was an error while executing this command!",
-					flags: MessageFlags.Ephemeral,
-				});
-			}
-		}
-	},
+    try {
+      await command.execute(interaction);
+    } catch (error) {
+      console.error(error);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({
+          content: "There was an error while executing this command!",
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        await interaction.reply({
+          content: "There was an error while executing this command!",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
+  },
 };

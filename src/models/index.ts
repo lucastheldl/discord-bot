@@ -11,6 +11,7 @@ Character.belongsToMany(Item, {
   through: CharacterItem,
   foreignKey: "CharacterId",
 });
+
 Item.belongsToMany(Character, {
   through: CharacterItem,
   foreignKey: "ItemId",
@@ -21,6 +22,7 @@ Character.belongsTo(Vehicle, {
   foreignKey: "vehicleId",
   as: "currentVehicle",
 });
+
 Vehicle.hasMany(Character, {
   foreignKey: "vehicleId",
   as: "characters",
@@ -31,14 +33,17 @@ Planet.hasMany(Vehicle, {
   foreignKey: "currentPlanetId",
   as: "vehicles",
 });
+
 Vehicle.belongsTo(Planet, {
   foreignKey: "currentPlanetId",
   as: "currentPlanet",
 });
+
 Location.hasMany(Vehicle, {
   foreignKey: "currentLocationId",
   as: "vehicles",
 });
+
 Vehicle.belongsTo(Location, {
   foreignKey: "currentLocationId",
   as: "currentLocation",
@@ -49,10 +54,12 @@ User.hasMany(Character, {
   foreignKey: "userId",
   as: "characters",
 });
+
 Character.belongsTo(User, {
   foreignKey: "userId",
   as: "User",
 });
+
 User.belongsTo(Character, {
   as: "currentCharacter",
   foreignKey: "currentCharacterId",
@@ -63,14 +70,17 @@ Planet.hasMany(Character, {
   foreignKey: "currentPlanetId",
   as: "characters",
 });
+
 Character.belongsTo(Planet, {
   foreignKey: "currentPlanetId",
   as: "currentPlanet",
 });
+
 Location.hasMany(Character, {
   foreignKey: "currentLocationId",
   as: "characters",
 });
+
 Character.belongsTo(Location, {
   foreignKey: "currentLocationId",
   as: "currentLocation",
@@ -78,11 +88,12 @@ Character.belongsTo(Location, {
 
 // Location-Planet associations
 Planet.hasMany(Location, {
-  foreignKey: "planetId", // Changed from currentPlanetId for consistency
+  foreignKey: "planetId",
   as: "locations",
 });
+
 Location.belongsTo(Planet, {
-  foreignKey: "planetId", // Changed from currentPlanetId for consistency
+  foreignKey: "planetId",
   as: "Planet",
 });
 

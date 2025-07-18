@@ -1,9 +1,8 @@
 import { sequelize } from "../db-connection";
-import { Model, DataTypes, Optional } from "sequelize";
+import { Model, DataTypes, type Optional } from "sequelize";
 import { Planet } from "./planet";
 import { Location } from "./location";
 
-// Define enums for vehicle types and classes
 export const VehicleType = [
   "spaceship",
   "car",
@@ -12,13 +11,13 @@ export const VehicleType = [
   "aircraft",
   "watercraft",
 ] as const;
-type VehicleTypeType = (typeof VehicleType)[number];
+
+export type VehicleTypeType = (typeof VehicleType)[number];
 
 export const VehicleClass = ["C", "B", "A", "SUPER", "MEGA", "OMEGA"] as const;
-type VehicleClassType = (typeof VehicleClass)[number];
+export type VehicleClassType = (typeof VehicleClass)[number];
 
-// Interface for Vehicle attributes
-interface VehicleAttributes {
+export interface VehicleAttributes {
   id: number;
   name: string;
   description: string;
@@ -33,10 +32,10 @@ interface VehicleAttributes {
   currentLocationId?: number | null;
 }
 
-// Interface for creation attributes
-interface VehicleCreationAttributes extends Optional<VehicleAttributes, "id"> {}
+export interface VehicleCreationAttributes
+  extends Optional<VehicleAttributes, "id"> {}
 
-class Vehicle
+export class Vehicle
   extends Model<VehicleAttributes, VehicleCreationAttributes>
   implements VehicleAttributes
 {
@@ -52,12 +51,8 @@ class Vehicle
   public class!: VehicleClassType;
   public currentPlanetId!: number | null;
   public currentLocationId!: number | null;
-
-  // Timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-
-  // Associations (added by Sequelize)
   public readonly currentPlanet?: Planet;
   public readonly currentLocation?: Location;
 }
@@ -81,7 +76,7 @@ Vehicle.init(
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        isUrl: true, // Assuming img stores a URL
+        isUrl: true,
       },
     },
     type: {
@@ -158,11 +153,3 @@ Vehicle.init(
     ],
   }
 );
-
-export { Vehicle };
-export type {
-  VehicleAttributes,
-  VehicleCreationAttributes,
-  VehicleTypeType,
-  VehicleClassType,
-};

@@ -1,48 +1,72 @@
-const { SlashCommandBuilder } = require("discord.js");
-const { battleManager } = require("../../handlers/battle-handler");
-const wait = require("node:timers/promises").setTimeout;
+import {
+  SlashCommandBuilder,
+  type CommandInteraction,
+  EmbedBuilder,
+} from "discord.js";
+import { battleManager } from "../../handlers/battle-handler";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("juntarbatalha")
-		.setDescription("Se une a uma batlha em andamento no local")
-		.addStringOption((option) =>
-			option
-				.setName("time")
-				.setDescription("Selecione de que lado você esta")
-				.setRequired(true),
-		),
-	async execute(interaction) {
-		const team = interaction.options.getString("team");
-		const locationType = playerData.locationType;
-		const locationId = playerData.locationId;
+export default {
+  data: new SlashCommandBuilder()
+    .setName("juntarbatalha")
+    .setDescription("Se une a uma batalha em andamento no local")
+    .addStringOption((option) =>
+      option
+        .setName("time")
+        .setDescription("Selecione de que lado você está")
+        .setRequired(true)
+        .addChoices(
+          { name: "Red Team", value: "red" },
+          { name: "Blue Team", value: "blue" }
+        )
+    ),
 
-		// Get battle at player's current location
-		const battle = battleManager.getBattle(locationType, locationId);
+  async execute(interaction: CommandInteraction) {
+    const team = interaction.options.get("time")?.value as "red" | "blue";
 
-		if (!battle) {
-			return interaction.reply("No active battle in this location!");
-		}
+    // These would need to come from player data or be parameters
+    const starId = 1;
+    const planetId = 1;
+    const locationId = 1;
 
-		if (battle.isPlayerInBattle(interaction.user.id)) {
-			return interaction.reply("You are already in this battle!");
-		}
+    const battle = battleManager.getBattle(starId, planetId, locationId);
 
-		const success = battle.addCharacter(interaction.user, team);
-		if (!success) {
-			return interaction.reply("Could not join the battle.");
-		}
+    if (!battle) {
+      return interaction.reply("No active battle in this location!");
+    }
 
-		// Update battle status
-		const status = await battle.getBattleStatus(sequelize);
-		const embed = new EmbedBuilder()
-			.setTitle("Battle Status")
-			.addFields(
-				{ name: "Red Team", value: status.red },
-				{ name: "Blue Team", value: status.blue },
-				{ name: "Current Turn", value: `<@${status.currentTurn}>` },
-			);
+    const characterId = Number.parseInt(interaction.user.id); // This might need adjustment based on your character system
 
-		await interaction.reply({ embeds: [embed] });
-	},
+    if (battle.isPlayerInBattle(characterId)) {
+      return interaction.reply("You are already in this battle!");
+    }
+
+    // You'd need to get the actual character data here
+    const playerParticipant = {
+      id: characterId,
+      name: interaction.user.username,
+      health: 100,
+      maxHealth: 100,
+      energy: 100,
+      maxEnergy: 100,
+      damage: 50,
+      armor: 25,
+      class: "B",
+    };
+
+    const success = battle.addCharacter(playerParticipant, team);
+
+    if (!success) {
+      return interaction.reply("Could not join the battle.");
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle("Joined Battle!")
+      .setDescription(`You have joined the ${team} team!`)
+      .addFields({
+        name: "Current Turn",
+        value: `Player ${battle.currentTurn}`,
+      });
+
+    await interaction.reply({ embeds: [embed] });
+  },
 };

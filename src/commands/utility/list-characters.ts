@@ -1,38 +1,41 @@
-const { SlashCommandBuilder } = require("discord.js");
-const wait = require("node:timers/promises").setTimeout;
-const { Character, Item, User } = require("../../models");
-const { sequelize } = require("../../db-connection");
-const { where } = require("sequelize");
+import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import { Character, User } from "../../models";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("personagens")
-		.setDescription("Lista seus personagens"),
+export default {
+  data: new SlashCommandBuilder()
+    .setName("personagens")
+    .setDescription("Lista seus personagens"),
 
-	async execute(interaction) {
-		const userId = interaction.user.id;
+  async execute(interaction: CommandInteraction) {
+    const userId = interaction.user.id;
 
-		try {
-			// Use a transaction to ensure data consistency
+    try {
+      const user = await User.findOne({
+        where: { id: userId },
+      });
 
-			// Check if there's a user and create one if there is not
-			const user = await User.findOne({
-				where: { id: userId },
-			});
+      if (!user) {
+        return interaction.reply("Você não possui personagens");
+      }
 
-			if (!user) {
-				return interaction.reply("Você não possui personagens");
-			}
+      const characters = await Character.findAll({
+        where: { userId: user.id },
+      });
 
-			// Create a character
-			const characters = await Character.findAll({
-				where: { userId: user.id },
-			});
+      if (characters.length === 0) {
+        return interaction.reply("Você não possui personagens");
+      }
 
-			return interaction.reply(`Personagems ${characters}`);
-		} catch (error) {
-			throw new Error(error);
-			//return interaction.reply("Something went wrong with creating character");
-		}
-	},
+      const characterList = characters
+        .map(
+          (char) => `• **${char.name}** - ${char.class} (${char.description})`
+        )
+        .join("\n");
+
+      return interaction.reply(`**Seus Personagens:**\n${characterList}`);
+    } catch (error) {
+      console.error("List characters error:", error);
+      return interaction.reply("Something went wrong with listing characters");
+    }
+  },
 };

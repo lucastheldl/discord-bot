@@ -3,8 +3,7 @@ import { Model, DataTypes } from "sequelize";
 import { Character } from "./character";
 import { Item } from "./item";
 
-// Interface for CharacterItem attributes
-interface CharacterItemAttributes {
+export interface CharacterItemAttributes {
   id: number;
   quantity: number;
   equipped: boolean;
@@ -12,7 +11,7 @@ interface CharacterItemAttributes {
   ItemId: number;
 }
 
-class CharacterItem
+export class CharacterItem
   extends Model<CharacterItemAttributes>
   implements CharacterItemAttributes
 {
@@ -21,8 +20,6 @@ class CharacterItem
   public equipped!: boolean;
   public CharacterId!: number;
   public ItemId!: number;
-
-  // Timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -67,10 +64,7 @@ CharacterItem.init(
   {
     sequelize,
     modelName: "characterItem",
-    tableName: "character_items", // Recommended naming for junction tables
+    tableName: "character_items",
     timestamps: true,
   }
 );
-
-export { CharacterItem };
-export type { CharacterItemAttributes };

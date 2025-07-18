@@ -1,61 +1,65 @@
-const { SlashCommandBuilder } = require("discord.js");
-const wait = require("node:timers/promises").setTimeout;
-const { Character, User } = require("../../models");
+import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import { Character, User } from "../../models";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("edit")
-		.setDescription("Edit a character")
-		.addStringOption((option) =>
-			option
-				.setName("name")
-				.setDescription("Nome do seu personagem")
-				.setRequired(false),
-		)
-		.addStringOption((option) =>
-			option
-				.setName("description")
-				.setDescription("Descrição do seu personagem")
-				.setRequired(false),
-		),
-	async execute(interaction) {
-		const characterName = interaction.options.getString("name");
-		const characterDescription = interaction.options.getString("description");
+export default {
+  data: new SlashCommandBuilder()
+    .setName("edit")
+    .setDescription("Edit a character")
+    .addStringOption((option) =>
+      option
+        .setName("name")
+        .setDescription("Nome do seu personagem")
+        .setRequired(false)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("description")
+        .setDescription("Descrição do seu personagem")
+        .setRequired(false)
+    ),
 
-		const userId = interaction.user.id;
+  async execute(interaction: CommandInteraction) {
+    const characterName = interaction.options.get("name")?.value as
+      | string
+      | null;
+    const characterDescription = interaction.options.get("description")
+      ?.value as string | null;
+    const userId = interaction.user.id;
 
-		try {
-			//gets by user
-			const user = await User.findByPk(userId, {
-				include: ["currentCharacter"],
-			});
-			if (!user) {
-				return interaction.reply("Você não possui personagens");
-			}
-			if (!user.currentCharacter) {
-				return interaction.reply("Você não possui um personagem selecionado");
-			}
+    try {
+      const user = await User.findByPk(userId, {
+        include: ["currentCharacter"],
+      });
 
-			// Updates character
-			//TODO: description reseting if not provided during edit
-			const affectedRows = await Character.update(
-				{ name: characterName },
-				{ description: characterDescription },
-				{
-					where: {
-						id: user.currentCharacterId,
-						userId: userId,
-					},
-				},
-			);
+      if (!user) {
+        return interaction.reply("Você não possui personagens");
+      }
 
-			if (affectedRows > 0) {
-				return interaction.reply(`Personagem ${characterName} foi editado`);
-			}
+      if (!user.currentCharacter) {
+        return interaction.reply("Você não possui um personagem selecionado");
+      }
 
-			return interaction.reply(`Este personagem não existe ${characterName}.`);
-		} catch (error) {
-			return interaction.reply("Something went wrong with edit character");
-		}
-	},
+      const updateData: any = {};
+      if (characterName) updateData.name = characterName;
+      if (characterDescription) updateData.description = characterDescription;
+
+      const [affectedRows] = await Character.update(updateData, {
+        where: {
+          id: user.currentCharacterId!,
+          userId: userId,
+        },
+      });
+
+      if (affectedRows > 0) {
+        return interaction.reply(
+          `Personagem ${characterName || "atual"} foi editado`
+        );
+      }
+
+      return interaction.reply("Este personagem não existe.");
+    } catch (error) {
+      console.error("Edit character error:", error);
+      return interaction.reply("Something went wrong with edit character");
+    }
+  },
 };

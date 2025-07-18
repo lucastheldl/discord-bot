@@ -1,38 +1,40 @@
-const { SlashCommandBuilder } = require("discord.js");
-const wait = require("node:timers/promises").setTimeout;
-const { Character, Item } = require("../../models");
+import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import { Character, User } from "../../models";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("entrar")
-		.setDescription("Realiza login como um de seus personagens")
-		.addStringOption((option) =>
-			option
-				.setName("name")
-				.setDescription("Nome do seu personagem")
-				.setRequired(true),
-		),
+export default {
+  data: new SlashCommandBuilder()
+    .setName("entrar")
+    .setDescription("Realiza login como um de seus personagens")
+    .addStringOption((option) =>
+      option
+        .setName("name")
+        .setDescription("Nome do seu personagem")
+        .setRequired(true)
+    ),
 
-	async execute(interaction) {
-		const userId = interaction.user.id;
-		const characterName = interaction.options.getString("name");
+  async execute(interaction: CommandInteraction) {
+    const userId = interaction.user.id;
+    const characterName = interaction.options.get("name")?.value as string;
 
-		try {
-			const character = await Character.findOne({
-				where: { name: characterName, userId: userId },
-			});
+    try {
+      const character = await Character.findOne({
+        where: { name: characterName, userId: userId },
+      });
 
-			if (!character) {
-				return interaction.reply("Este usuário não possui este personagem.");
-			}
+      if (!character) {
+        return interaction.reply("Este usuário não possui este personagem.");
+      }
 
-			return interaction.reply(`Entrou como persoangem: ${character.name}.`);
-		} catch (error) {
-			if (error.name === "SequelizeUniqueConstraintError") {
-				return interaction.reply("Character dont exists");
-			}
-			throw new Error(error);
-			//return interaction.reply("Something went wrong with creating character");
-		}
-	},
+      // Update user's current character
+      await User.update(
+        { currentCharacterId: character.id },
+        { where: { id: userId } }
+      );
+
+      return interaction.reply(`Entrou como personagem: ${character.name}.`);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      return interaction.reply("Something went wrong with character login");
+    }
+  },
 };

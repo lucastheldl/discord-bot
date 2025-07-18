@@ -1,7 +1,9 @@
 import { sequelize } from "../db-connection";
-import { Model, DataTypes, Optional } from "sequelize";
+import { Model, DataTypes, type Optional } from "sequelize";
+import type { Location } from "./location";
+import type { Character } from "./character";
+import type { Vehicle } from "./vehicle";
 
-// Define the planet type enum
 export const PlanetType = [
   "rock",
   "gas",
@@ -10,18 +12,20 @@ export const PlanetType = [
   "lava",
   "ocean",
 ] as const;
-type PlanetTypeType = (typeof PlanetType)[number];
 
-interface PlanetAttributes {
+export type PlanetTypeType = (typeof PlanetType)[number];
+
+export interface PlanetAttributes {
   id: number;
   name: string;
   description: string;
   type: PlanetTypeType;
 }
 
-interface PlanetCreationAttributes extends Optional<PlanetAttributes, "id"> {}
+export interface PlanetCreationAttributes
+  extends Optional<PlanetAttributes, "id"> {}
 
-class Planet
+export class Planet
   extends Model<PlanetAttributes, PlanetCreationAttributes>
   implements PlanetAttributes
 {
@@ -29,9 +33,13 @@ class Planet
   public name!: string;
   public description!: string;
   public type!: PlanetTypeType;
-
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  // Association properties
+  public readonly locations?: Location[];
+  public readonly characters?: Character[];
+  public readonly vehicles?: Vehicle[];
 }
 
 Planet.init(
@@ -62,6 +70,3 @@ Planet.init(
     timestamps: true,
   }
 );
-
-export { Planet };
-export type { PlanetAttributes, PlanetCreationAttributes, PlanetTypeType };

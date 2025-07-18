@@ -1,28 +1,9 @@
-const { Events } = require("discord.js");
-const {
-	Character,
-	CharacterItem,
-	Vehicle,
-	Item,
-	User,
-	Location,
-	Planet,
-} = require("../models");
+import { Events, type Client } from "discord.js";
 
-module.exports = {
-	name: Events.ClientReady,
-	once: true,
-	async execute(client) {
-		/* 	await Promise.all([
-			Character.sync(),
-			Vehicle.sync(),
-			Item.sync(),
-			CharacterItem.sync(),
-			User.sync(),
-			Planet.sync(),
-			Location.sync(),
-		]); */
-
-		console.log(`Ready! Logged in as ${client.user.tag}`);
-	},
+export default {
+  name: Events.ClientReady,
+  once: true,
+  async execute(client: Client) {
+    console.log(`Ready! Logged in as ${client.user?.tag}`);
+  },
 };

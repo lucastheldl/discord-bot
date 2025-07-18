@@ -1,8 +1,9 @@
 import { sequelize } from "../db-connection";
-import { Model, DataTypes, Optional } from "sequelize";
-import { Planet } from "./planet";
+import { Model, DataTypes, type Optional } from "sequelize";
+import type { Planet } from "./planet";
+import type { Character } from "./character";
+import type { Vehicle } from "./vehicle";
 
-// Define the location type enum
 export const LocationType = [
   "city",
   "natural",
@@ -10,9 +11,10 @@ export const LocationType = [
   "outpost",
   "ruins",
 ] as const;
-type LocationTypeType = (typeof LocationType)[number];
 
-interface LocationAttributes {
+export type LocationTypeType = (typeof LocationType)[number];
+
+export interface LocationAttributes {
   id: number;
   name: string;
   description: string;
@@ -22,10 +24,10 @@ interface LocationAttributes {
   planetId?: number | null;
 }
 
-interface LocationCreationAttributes
+export interface LocationCreationAttributes
   extends Optional<LocationAttributes, "id"> {}
 
-class Location
+export class Location
   extends Model<LocationAttributes, LocationCreationAttributes>
   implements LocationAttributes
 {
@@ -36,12 +38,13 @@ class Location
   public population!: number;
   public capital!: number;
   public planetId!: number | null;
-
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  // Associations will be added by Sequelize
+  // Association properties
   public readonly Planet?: Planet;
+  public readonly characters?: Character[];
+  public readonly vehicles?: Vehicle[];
 }
 
 Location.init(
@@ -83,10 +86,6 @@ Location.init(
     },
     planetId: {
       type: DataTypes.INTEGER,
-      references: {
-        model: Planet,
-        key: "id",
-      },
       allowNull: true,
     },
   },
@@ -97,10 +96,3 @@ Location.init(
     timestamps: true,
   }
 );
-
-export { Location };
-export type {
-  LocationAttributes,
-  LocationCreationAttributes,
-  LocationTypeType,
-};

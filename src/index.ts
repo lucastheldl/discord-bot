@@ -1,19 +1,15 @@
-// Import necessary modules and types
 import fs from "node:fs";
 import path from "node:path";
-import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import { Client, Collection, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
-import { Command } from "./types"; // We'll define this type below
+import type { Command } from "./types";
 
-// Initialize environment variables
 dotenv.config();
 
-// Extend the Client class to include the commands collection
-class CustomClient extends Client {
+export class CustomClient extends Client {
   commands: Collection<string, Command> = new Collection();
 }
 
-// Create a new client instance
 const client = new CustomClient({ intents: [GatewayIntentBits.Guilds] });
 
 // Load commands
@@ -28,9 +24,8 @@ for (const folder of commandFolders) {
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
-    const command = require(filePath) as Command;
+    const command = require(filePath).default as Command;
 
-    // Set a new item in the Collection with the key as the command name
     if ("data" in command && "execute" in command) {
       client.commands.set(command.data.name, command);
     } else {
@@ -49,7 +44,7 @@ const eventFiles = fs
 
 for (const file of eventFiles) {
   const filePath = path.join(eventsPath, file);
-  const event = require(filePath);
+  const event = require(filePath).default;
 
   if (event.once) {
     client.once(event.name, (...args: unknown[]) => event.execute(...args));
@@ -58,11 +53,4 @@ for (const file of eventFiles) {
   }
 }
 
-// Log in to Discord with your client's token
 client.login(process.env.TOKEN);
-
-// Add this to a types.ts file in your project root
-export interface Command {
-  data: any; // Replace with proper type from discord.js or your command structure
-  execute: (...args: any[]) => Promise<void> | void;
-}

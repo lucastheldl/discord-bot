@@ -1,102 +1,98 @@
-const { SlashCommandBuilder } = require("discord.js");
-const wait = require("node:timers/promises").setTimeout;
-const { Character, Item, User } = require("../../models");
-const { sequelize } = require("../../db-connection");
+import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import { Character, Item, User } from "../../models";
+import { sequelize } from "../../db-connection";
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName("character")
-		.setDescription("Create a character")
-		.addStringOption((option) =>
-			option
-				.setName("name")
-				.setDescription("Nome do seu personagem")
-				.setRequired(true),
-		)
-		.addStringOption((option) =>
-			option
-				.setName("description")
-				.setDescription("Descrição do seu personagem")
-				.setRequired(true),
-		),
-	async execute(interaction) {
-		const characterName = interaction.options.getString("name");
-		const characterDescription = interaction.options.getString("description");
-		const userId = interaction.user.id;
+export default {
+  data: new SlashCommandBuilder()
+    .setName("character")
+    .setDescription("Create a character")
+    .addStringOption((option) =>
+      option
+        .setName("name")
+        .setDescription("Nome do seu personagem")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("description")
+        .setDescription("Descrição do seu personagem")
+        .setRequired(true)
+    ),
 
-		try {
-			// Use a transaction to ensure data consistency
-			const result = await sequelize.transaction(async (t) => {
-				// Check if there's a user and create one if there is not
-				let user = await User.findOne({
-					where: { id: userId },
-					transaction: t,
-				});
+  async execute(interaction: CommandInteraction) {
+    const characterName = interaction.options.get("name")?.value as string;
+    const characterDescription = interaction.options.get("description")
+      ?.value as string;
+    const userId = interaction.user.id;
 
-				if (!user) {
-					user = await User.create(
-						{
-							id: userId, // Use the Discord user ID
-							name: interaction.user.username,
-						},
-						{ transaction: t },
-					);
-				}
+    try {
+      const result = await sequelize.transaction(async (t) => {
+        let user = await User.findOne({
+          where: { id: userId },
+          transaction: t,
+        });
 
-				// Create a character
-				const character = await Character.create(
-					{
-						name: characterName,
-						description: characterDescription,
-						username: interaction.user.username,
-						max_health: 100,
-						max_energy: 100,
-						current_health: 100,
-						current_energy: 100,
-						class: "B",
-						userId: user.id,
-						currentPlanetId: 1,
-						currentLocationId: 1,
-					},
-					{ transaction: t },
-				);
+        if (!user) {
+          user = await User.create(
+            {
+              id: userId,
+              name: interaction.user.username,
+            },
+            { transaction: t }
+          );
+        }
 
-				// Create the starter item
-				const item = await Item.create(
-					{
-						name: "Sword",
-						type: "weapon",
-						damage: 10,
-						class: "B",
-					},
-					{ transaction: t },
-				);
+        const character = await Character.create(
+          {
+            name: characterName,
+            description: characterDescription,
+            username: interaction.user.username,
+            max_health: 100,
+            max_energy: 100,
+            current_health: 100,
+            current_energy: 100,
+            age: 25,
+            class: "B",
+            isInsideVehicle: false,
+            userId: user.id,
+            currentPlanetId: 1,
+            currentLocationId: 1,
+          },
+          { transaction: t }
+        );
 
-				// Add item to character
-				await character.addItem(item, {
-					through: { quantity: 1, equipped: false },
-					transaction: t,
-				});
+        const item = await Item.create(
+          {
+            name: "Sword",
+            type: "weapon",
+            damage: 10,
+            class: "B",
+          },
+          { transaction: t }
+        );
 
-				// Update user with the current character
-				await user.update(
-					{
-						currentCharacterId: character.id,
-					},
+        await character.addItem(item, {
+          through: { quantity: 1, equipped: false },
+          transaction: t,
+        });
 
-					{ where: { id: userId }, transaction: t },
-				);
+        await user.update(
+          {
+            currentCharacterId: character.id,
+          },
+          { where: { id: userId }, transaction: t }
+        );
 
-				return { user, character };
-			});
+        return { user, character };
+      });
 
-			return interaction.reply(`Character ${result.character.name} created.`);
-		} catch (error) {
-			if (error.name === "SequelizeUniqueConstraintError") {
-				return interaction.reply("Character already exists");
-			}
-			throw new Error(error);
-			//return interaction.reply("Something went wrong with creating character");
-		}
-	},
+      return interaction.reply(`Character ${result.character.name} created.`);
+    } catch (error: any) {
+      if (error.name === "SequelizeUniqueConstraintError") {
+        return interaction.reply("Character already exists");
+      }
+      console.error("Character creation error:", error);
+      return interaction.reply("Something went wrong with creating character");
+    }
+  },
 };
