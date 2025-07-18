@@ -2,6 +2,7 @@ import {
   SlashCommandBuilder,
   type CommandInteraction,
   EmbedBuilder,
+  ChatInputCommandInteraction,
 } from "discord.js";
 import { battleManager } from "../../handlers/battle-handler";
 
@@ -20,7 +21,7 @@ export default {
         )
     ),
 
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const team = interaction.options.get("time")?.value as "red" | "blue";
 
     // These would need to come from player data or be parameters

@@ -7,6 +7,7 @@ import {
   ButtonStyle,
   APIActionRowComponent,
   ComponentType,
+  ChatInputCommandInteraction,
 } from "discord.js";
 import { Character, User } from "../../models";
 import type { Power } from "../../types";
@@ -19,7 +20,7 @@ export default {
       option.setName("name").setDescription("Nome do usuário").setRequired(true)
     ),
 
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const userId = interaction.user.id;
     const enemyUserName = interaction.options.get("name")?.value as string;
 

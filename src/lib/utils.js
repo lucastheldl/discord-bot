@@ -1,3 +1,1 @@
-async function populateWithShips() {}
-
-module.exports = { populateWithShips };
+export async function populateWithShips() {}

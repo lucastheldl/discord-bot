@@ -1,4 +1,8 @@
-import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  type CommandInteraction,
+} from "discord.js";
 import { Character, Item, User } from "../../models";
 import { sequelize } from "../../db-connection";
 
@@ -19,7 +23,7 @@ export default {
         .setRequired(true)
     ),
 
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const characterName = interaction.options.get("name")?.value as string;
     const characterDescription = interaction.options.get("description")
       ?.value as string;

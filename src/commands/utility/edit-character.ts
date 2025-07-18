@@ -1,4 +1,8 @@
-import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  type CommandInteraction,
+} from "discord.js";
 import { Character, User } from "../../models";
 
 export default {
@@ -18,7 +22,7 @@ export default {
         .setRequired(false)
     ),
 
-  async execute(interaction: CommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const characterName = interaction.options.get("name")?.value as
       | string
       | null;
