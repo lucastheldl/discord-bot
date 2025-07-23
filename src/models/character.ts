@@ -5,6 +5,7 @@ import type { Location } from "./location";
 import type { Vehicle } from "./vehicle";
 import type { User } from "./user";
 import type { Item } from "./item";
+import { Star } from "./star";
 
 export const CharacterClass = [
   "C",
@@ -30,6 +31,7 @@ export interface CharacterAttributes {
   username: string;
   isInsideVehicle: boolean;
   vehicleId?: number | null;
+  currentStarId?: number | null;
   currentPlanetId?: number | null;
   currentLocationId?: number | null;
   userId: string;
@@ -57,6 +59,7 @@ export class Character
   public username!: string;
   public isInsideVehicle!: boolean;
   public vehicleId!: number | null;
+  public currentStarId!: number | null;
   public currentPlanetId!: number | null;
   public currentLocationId!: number | null;
   public userId!: string;
@@ -67,6 +70,7 @@ export class Character
   public readonly updatedAt!: Date;
 
   // Association properties
+  public readonly currentStar?: Star;
   public readonly currentPlanet?: Planet;
   public readonly currentLocation?: Location;
   public readonly currentVehicle?: Vehicle;
@@ -131,6 +135,14 @@ Character.init(
       allowNull: true,
       references: {
         model: "vehicles",
+        key: "id",
+      },
+    },
+    currentStarId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "stars",
         key: "id",
       },
     },

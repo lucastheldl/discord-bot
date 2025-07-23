@@ -2,6 +2,7 @@ import { sequelize } from "../db-connection";
 import { Model, DataTypes, type Optional } from "sequelize";
 import { Planet } from "./planet";
 import { Location } from "./location";
+import { Star } from "./star";
 
 export const VehicleType = [
   "spaceship",
@@ -28,6 +29,7 @@ export interface VehicleAttributes {
   armor: number;
   damage: number;
   class: VehicleClassType;
+  currentStarId?: number | null;
   currentPlanetId?: number | null;
   currentLocationId?: number | null;
 }
@@ -50,7 +52,9 @@ export class Vehicle
   public damage!: number;
   public class!: VehicleClassType;
   public currentPlanetId!: number | null;
+  public currentStarId!: number | null;
   public currentLocationId!: number | null;
+  public readonly currentStar!: Star;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly currentPlanet?: Planet;
@@ -116,6 +120,14 @@ Vehicle.init(
     class: {
       type: DataTypes.ENUM(...VehicleClass),
       allowNull: false,
+    },
+    currentStarId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Star,
+        key: "id",
+      },
+      allowNull: true,
     },
     currentPlanetId: {
       type: DataTypes.INTEGER,

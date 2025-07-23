@@ -3,50 +3,40 @@ import { Model, DataTypes, type Optional } from "sequelize";
 import type { Location } from "./location";
 import type { Character } from "./character";
 import type { Vehicle } from "./vehicle";
-import { Star } from "./star";
+import { Planet } from "./planet";
 
-export const PlanetType = [
-  "rock",
-  "gas",
-  "mecha",
-  "ice",
-  "lava",
-  "ocean",
-] as const;
+export const StarType = ["small", "giant", "huge", "black", "neutron"] as const;
 
-export type PlanetTypeType = (typeof PlanetType)[number];
+export type StarTypeType = (typeof StarType)[number];
 
-export interface PlanetAttributes {
+export interface StarAttributes {
   id: number;
   name: string;
   description: string;
-  type: PlanetTypeType;
-  currentStarId: number | null;
+  type: StarTypeType;
 }
 
-export interface PlanetCreationAttributes
-  extends Optional<PlanetAttributes, "id"> {}
+export interface StarCreationAttributes
+  extends Optional<StarAttributes, "id"> {}
 
-export class Planet
-  extends Model<PlanetAttributes, PlanetCreationAttributes>
-  implements PlanetAttributes
+export class Star
+  extends Model<StarAttributes, StarCreationAttributes>
+  implements StarAttributes
 {
   public id!: number;
   public name!: string;
   public description!: string;
-  public type!: PlanetTypeType;
-  public currentStarId!: number | null;
+  public type!: StarTypeType;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   // Association properties
-  public readonly currentStar?: Star;
-  public readonly locations?: Location[];
+  public readonly planets?: Planet[];
   public readonly characters?: Character[];
   public readonly vehicles?: Vehicle[];
 }
 
-Planet.init(
+Star.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -63,22 +53,14 @@ Planet.init(
       allowNull: false,
     },
     type: {
-      type: DataTypes.ENUM(...PlanetType),
+      type: DataTypes.ENUM(...StarType),
       allowNull: false,
-    },
-    currentStarId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: "stars",
-        key: "id",
-      },
     },
   },
   {
     sequelize,
-    modelName: "planets",
-    tableName: "planets",
+    modelName: "stars",
+    tableName: "stars",
     timestamps: true,
   }
 );

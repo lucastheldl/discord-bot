@@ -5,6 +5,7 @@ import { Vehicle } from "./vehicle";
 import { User } from "./user";
 import { Location } from "./location";
 import { Planet } from "./planet";
+import { Star } from "./star";
 
 // Define associations with proper typing
 Character.belongsToMany(Item, {
@@ -63,6 +64,36 @@ Character.belongsTo(User, {
 User.belongsTo(Character, {
   as: "currentCharacter",
   foreignKey: "currentCharacterId",
+});
+
+// Star-Planet-Vehicle-Character associations
+Star.hasMany(Planet, {
+  foreignKey: "currentStarId",
+  as: "planets",
+});
+
+Character.belongsTo(Star, {
+  foreignKey: "currentStarId",
+  as: "currentStar",
+});
+
+Star.hasMany(Vehicle, {
+  foreignKey: "currentStarId",
+  as: "vehicles",
+});
+
+Vehicle.belongsTo(Star, {
+  foreignKey: "currentStarId",
+  as: "currentStar",
+});
+Star.hasMany(Character, {
+  foreignKey: "currentStarId",
+  as: "characters",
+});
+
+Character.belongsTo(Star, {
+  foreignKey: "currentStarId",
+  as: "currentStar",
 });
 
 // Planet-Location-Character associations
