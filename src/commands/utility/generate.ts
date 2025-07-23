@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
-import { Planet, Location, Vehicle } from "../../models";
+import { Planet, Location, Vehicle, Star } from "../../models";
 
 export default {
   data: new SlashCommandBuilder()
@@ -8,10 +8,17 @@ export default {
 
   async execute(interaction: CommandInteraction) {
     try {
+      const star = await Star.create({
+        name: "Star 1",
+        description: "Estrela perdida",
+        type: "small",
+      });
+
       const planet = await Planet.create({
         name: "L4",
         description: "Primeiro planeta do universo",
         type: "rock",
+        currentStarId: star.id,
       });
 
       const location_1 = await Location.create({

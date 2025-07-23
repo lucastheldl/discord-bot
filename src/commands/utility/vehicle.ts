@@ -6,6 +6,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
+  ChatInputCommandInteraction,
 } from "discord.js";
 import { setTimeout as wait } from "node:timers/promises";
 import { User, Character, Vehicle } from "../../models";
@@ -23,7 +24,12 @@ const options: VehicleOption[] = [
   { id: "4", name: "Modificar" },
 ];
 
-const command: Command = {
+const locationOptions: VehicleOption[] = [
+  { id: "1", name: "Subir" },
+  { id: "2", name: "Descer" },
+];
+
+export default {
   data: new SlashCommandBuilder()
     .setName("veiculo")
     .setDescription("Entra ou sai de seu veículo selecionado"),
@@ -40,13 +46,16 @@ const command: Command = {
             attributes: [
               "id",
               "name",
-              "currentLocationId",
-              "currentPlanetId",
+              "currentPlanet",
+              "currentStar",
+              "currentLocation",
               "vehicleId",
             ],
           },
         ],
       });
+
+      console.log(user?.currentCharacter);
 
       if (!user) {
         await interaction.reply("Você não possui personagens");
@@ -127,6 +136,7 @@ const command: Command = {
             await buttonInteraction.update({
               content: "Pilotando o veículo...",
             });
+            displayDestinations(interaction, user, vehicle);
             break;
           case "3": // Inventário
             await buttonInteraction.update({
@@ -160,4 +170,85 @@ const command: Command = {
   },
 };
 
-export = command;
+async function displayDestinations(
+  interaction: CommandInteraction,
+  user: User,
+  vehicle: Vehicle
+) {
+  try {
+    const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+    let currentRow = new ActionRowBuilder<ButtonBuilder>();
+
+    options.forEach((opt, index) => {
+      const button = new ButtonBuilder()
+        .setCustomId(opt.id)
+        .setLabel(opt.name)
+        .setStyle(ButtonStyle.Primary);
+
+      currentRow.addComponents(button);
+
+      if (currentRow.components.length === 5 || index === options.length - 1) {
+        rows.push(currentRow);
+        currentRow = new ActionRowBuilder<ButtonBuilder>();
+      }
+    });
+
+    const locationsEmbed = new EmbedBuilder()
+      .setColor(0x0099ff)
+      .setTitle(`${vehicle.type} ${vehicle.name}`)
+      .setDescription(`Todos os sistemas prontos para viagem`)
+      .setThumbnail(vehicle.img);
+
+    const followUpMessage = await interaction.followUp({
+      embeds: [locationsEmbed],
+      components: rows,
+    });
+
+    const collector = followUpMessage.createMessageComponentCollector({
+      time: 30000,
+    });
+
+    collector.on("collect", async (buttonInteraction) => {
+      switch (buttonInteraction.customId) {
+        case "1": // Sair
+          await buttonInteraction.reply({
+            content: "Você saiu do veículo!",
+            flags: MessageFlags.Ephemeral,
+          });
+          break;
+        case "2": // Pilotar
+          await buttonInteraction.update({
+            content: "Pilotando o veículo...",
+          });
+          displayDestinations(interaction, user, vehicle);
+          break;
+        case "3": // Inventário
+          await buttonInteraction.update({
+            content: "Abrindo inventário...",
+          });
+          break;
+        case "4": // Modificar
+          await buttonInteraction.update({
+            content: "Abrindo menu de modificações...",
+          });
+          break;
+      }
+    });
+
+    // Disable all buttons when collector expires
+    collector.on("end", () => {
+      rows.forEach((row) => {
+        row.components.forEach((button) => button.setDisabled(true));
+      });
+      followUpMessage
+        .edit({
+          components: rows,
+          embeds: [locationsEmbed],
+        })
+        .catch(console.error);
+    });
+  } catch (error) {
+    console.error("Vehicle command error:", error);
+    await interaction.reply("Erro ao buscar locais");
+  }
+}

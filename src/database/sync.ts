@@ -6,6 +6,7 @@ import {
   Vehicle,
   Item,
   CharacterItem,
+  Star,
 } from "../models";
 
 export async function syncDatabase(force = false) {
@@ -30,6 +31,9 @@ export async function syncDatabase(force = false) {
 
     await Character.sync({ force });
     console.log("✓ Character table synced");
+
+    await Star.sync({ force });
+    console.log("✓ Star table synced");
 
     await CharacterItem.sync({ force });
     console.log("✓ CharacterItem table synced");

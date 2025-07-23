@@ -91,11 +91,6 @@ Star.hasMany(Character, {
   as: "characters",
 });
 
-Character.belongsTo(Star, {
-  foreignKey: "currentStarId",
-  as: "currentStar",
-});
-
 // Planet-Location-Character associations
 Planet.hasMany(Character, {
   foreignKey: "currentPlanetId",
@@ -128,4 +123,13 @@ Location.belongsTo(Planet, {
   as: "Planet",
 });
 
-export { Item, Character, CharacterItem, Vehicle, User, Location, Planet };
+export {
+  Item,
+  Character,
+  CharacterItem,
+  Vehicle,
+  User,
+  Location,
+  Planet,
+  Star,
+};
