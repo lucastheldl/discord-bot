@@ -64,8 +64,6 @@ export class Character
   public currentLocationId!: number | null;
   public userId!: string;
   public img?: string;
-  public damage?: number;
-  public armor?: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -173,16 +171,6 @@ Character.init(
     img: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    damage: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    armor: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
     },
   },
   {

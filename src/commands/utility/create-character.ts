@@ -78,8 +78,6 @@ export default {
             userId: user.id,
             currentPlanetId: defaultPlanet.id,
             currentLocationId: defaultLocation.id,
-            damage: 10,
-            armor: 5,
           },
           { transaction: t }
         );

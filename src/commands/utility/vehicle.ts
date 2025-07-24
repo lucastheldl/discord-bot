@@ -46,9 +46,9 @@ export default {
             attributes: [
               "id",
               "name",
-              "currentPlanet",
-              "currentStar",
-              "currentLocation",
+              "currentPlanetId",
+              "currentStarId",
+              "currentLocationId",
               "vehicleId",
             ],
           },
